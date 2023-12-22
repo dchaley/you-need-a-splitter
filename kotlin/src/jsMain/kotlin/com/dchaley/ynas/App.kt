@@ -45,13 +45,15 @@ class App : Application() {
                 marginRight = auto
 //                alignSelf = AlignItems.CENTER
                 vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
-                    div("Hello You Need A Splitter!")
+                    div("You Need A Splitter!")
 
                     hPanel(spacing = 5) {
                     }.bindEach(budgetSummaries) { budget ->
                         button(text = budget.name) {
                             onClick {
-                                console.log("Clicked on ${budget.name}")
+                                ynab.transactions.getTransactions(budget.id, type="unapproved").then { response ->
+                                    console.log(response.data.transactions)
+                                }
                             }
                         }
                     }
