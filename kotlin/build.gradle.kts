@@ -51,12 +51,14 @@ kotlin {
         implementation("io.kvision:kvision:$kvisionVersion")
         implementation("io.kvision:kvision-bootstrap:$kvisionVersion")
         implementation("io.kvision:kvision-state-flow:$kvisionVersion")
+        implementation(npm("@material/web", "^1.1.1"))
         implementation(npm("ynab", "2.2.0"))
     }
     sourceSets["jsTest"].dependencies {
         implementation(kotlin("test-js"))
         implementation("io.kvision:kvision-testutils:$kvisionVersion")
         implementation("io.kvision:kvision-state-flow:$kvisionVersion")
+        implementation(npm("@material/web", "^1.1.1"))
         implementation(npm("ynab", "2.2.0"))
     }
 }

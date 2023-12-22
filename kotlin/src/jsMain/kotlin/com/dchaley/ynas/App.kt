@@ -2,21 +2,15 @@ package com.dchaley.ynas
 
 import io.kvision.*
 import io.kvision.core.AlignItems
-import io.kvision.form.text.text
-import io.kvision.html.button
-import io.kvision.html.div
-import io.kvision.html.link
-import io.kvision.panel.hPanel
+import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
-import io.kvision.state.bindEach
-import io.kvision.state.bindTo
 import io.kvision.state.observableState
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import ynab.BudgetSummary
 import ynab.api
 
@@ -32,6 +26,8 @@ class App : Application() {
         ynab.budgets.getBudgets().then { response ->
             budgetSummaries.value = response.data.budgets.toList()
         }
+        val selectedBudget = MutableStateFlow<BudgetSummary?>(null)
+
         val flow = MutableStateFlow("")
         budgetSummaries.observableState.subscribe  { budgets ->
             flow.value = budgets.joinToString("\n") { it.name }
@@ -43,20 +39,25 @@ class App : Application() {
                 maxWidth = 60.perc
                 marginLeft = auto
                 marginRight = auto
-//                alignSelf = AlignItems.CENTER
                 vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
-                    div("You Need A Splitter!")
+                    header {
+                        h1("You Need a Splitter!")
+                    }
 
-                    hPanel(spacing = 5) {
-                    }.bindEach(budgetSummaries) { budget ->
-                        button(text = budget.name) {
-                            onClick {
-                                ynab.transactions.getTransactions(budget.id, type="unapproved").then { response ->
-                                    console.log(response.data.transactions)
-                                }
+                    div().bind(selectedBudget) {budget ->
+                        if (budget != null) {
+                            div("Selected budget: ${budget.name}")
+                        }
+                        else {
+                            budgetSelector(budgetSummaries) { newBudget ->
+                                selectedBudget.value = newBudget
+                                //ynab.transactions.getTransactions(budget.id, type="unapproved").then { response ->
+                                //console.log(response.data.transactions)
+                                //}
                             }
                         }
                     }
+
                 }
             }
         }
