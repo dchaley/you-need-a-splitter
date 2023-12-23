@@ -50,15 +50,23 @@ kotlin {
     sourceSets["jsMain"].dependencies {
         implementation("io.kvision:kvision:$kvisionVersion")
         implementation("io.kvision:kvision-bootstrap:$kvisionVersion")
+        implementation("io.kvision:kvision-fontawesome:$kvisionVersion")
         implementation("io.kvision:kvision-state-flow:$kvisionVersion")
-        implementation(npm("@material/web", "^1.1.1"))
+        implementation(npm("@fortawesome/fontawesome-svg-core", "6.5.1"))
+        implementation(npm("@fortawesome/free-solid-svg-icons", "6.5.1"))
+        implementation(npm("@fortawesome/free-regular-svg-icons", "6.5.1"))
+        implementation(npm("@fortawesome/free-brands-svg-icons", "6.5.1"))
         implementation(npm("ynab", "2.2.0"))
     }
     sourceSets["jsTest"].dependencies {
         implementation(kotlin("test-js"))
+        implementation("io.kvision:kvision-fontawesome:$kvisionVersion")
         implementation("io.kvision:kvision-testutils:$kvisionVersion")
         implementation("io.kvision:kvision-state-flow:$kvisionVersion")
-        implementation(npm("@material/web", "^1.1.1"))
+        implementation(npm("@fortawesome/fontawesome-svg-core", "6.5.1"))
+        implementation(npm("@fortawesome/free-solid-svg-icons", "6.5.1"))
+        implementation(npm("@fortawesome/free-regular-svg-icons", "6.5.1"))
+        implementation(npm("@fortawesome/free-brands-svg-icons", "6.5.1"))
         implementation(npm("ynab", "2.2.0"))
     }
 }

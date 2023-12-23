@@ -15,10 +15,16 @@ import ynab.BudgetSummary
 import ynab.api
 
 class App : Application() {
+    init {
+        require("@fortawesome/fontawesome-free/js/brands.js")
+        require("@fortawesome/fontawesome-free/js/solid.js")
+        require("@fortawesome/fontawesome-free/js/fontawesome.js")
+    }
+
     override fun start() {
         // Read the variable YNAB_ACCESS_TOKEN from the environment (see config.js in webpack.config.d)
         val env = js("PROCESS_ENV")
-        val accessToken = env.YNAB_ACCESS_TOKEN
+        val accessToken = env.YNAB_ACCESS_TOKEN as String
 
         val ynab = api(accessToken)
 
