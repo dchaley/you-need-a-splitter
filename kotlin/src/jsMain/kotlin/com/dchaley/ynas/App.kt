@@ -12,6 +12,7 @@ import io.kvision.utils.perc
 import io.kvision.utils.px
 import kotlinx.coroutines.flow.*
 import ynab.BudgetSummary
+import ynab.TransactionDetail
 import ynab.api
 
 class App : Application() {
@@ -34,10 +35,7 @@ class App : Application() {
         }
         val selectedBudget = MutableStateFlow<BudgetSummary?>(null)
 
-        val flow = MutableStateFlow("")
-        budgetSummaries.observableState.subscribe  { budgets ->
-            flow.value = budgets.joinToString("\n") { it.name }
-        }
+        val unapprovedTxns = MutableStateFlow(listOf<TransactionDetail>())
 
         root("kvapp") {
             vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
@@ -57,11 +55,15 @@ class App : Application() {
                         else {
                             budgetSelector(budgetSummaries) { newBudget ->
                                 selectedBudget.value = newBudget
-                                //ynab.transactions.getTransactions(budget.id, type="unapproved").then { response ->
-                                //console.log(response.data.transactions)
-                                //}
+                                ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
+                                    unapprovedTxns.value = response.data.transactions.toList()
+                                }
                             }
                         }
+                    }
+
+                    div().bind(unapprovedTxns) { unapprovedTxns ->
+                        transactionsList(unapprovedTxns)
                     }
 
                 }
