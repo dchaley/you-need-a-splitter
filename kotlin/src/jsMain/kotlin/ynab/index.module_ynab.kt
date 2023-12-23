@@ -14,6 +14,6 @@ external class api(accessToken: String, endpointUrl: String = definedExternally)
     // var months: MonthsApi = definedExternally
     // var payees: PayeesApi = definedExternally
     // var payeeLocations: PayeeLocationsApi = definedExternally
-    // var transactions: CustomTransactionsApi = definedExternally
+    var transactions: TransactionsApi = definedExternally
     // var scheduledTransactions: ScheduledTransactionsApi = definedExternally
 }

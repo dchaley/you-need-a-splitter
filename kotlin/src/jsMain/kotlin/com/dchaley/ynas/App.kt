@@ -2,29 +2,30 @@ package com.dchaley.ynas
 
 import io.kvision.*
 import io.kvision.core.AlignItems
-import io.kvision.form.text.text
-import io.kvision.html.button
-import io.kvision.html.div
-import io.kvision.html.link
-import io.kvision.panel.hPanel
+import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
-import io.kvision.state.bindEach
-import io.kvision.state.bindTo
 import io.kvision.state.observableState
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import ynab.BudgetSummary
+import ynab.TransactionDetail
 import ynab.api
 
 class App : Application() {
+    init {
+        require("@fortawesome/fontawesome-free/js/brands.js")
+        require("@fortawesome/fontawesome-free/js/solid.js")
+        require("@fortawesome/fontawesome-free/js/fontawesome.js")
+    }
+
     override fun start() {
         // Read the variable YNAB_ACCESS_TOKEN from the environment (see config.js in webpack.config.d)
         val env = js("PROCESS_ENV")
-        val accessToken = env.YNAB_ACCESS_TOKEN
+        val accessToken = env.YNAB_ACCESS_TOKEN as String
 
         val ynab = api(accessToken)
 
@@ -32,10 +33,9 @@ class App : Application() {
         ynab.budgets.getBudgets().then { response ->
             budgetSummaries.value = response.data.budgets.toList()
         }
-        val flow = MutableStateFlow("")
-        budgetSummaries.observableState.subscribe  { budgets ->
-            flow.value = budgets.joinToString("\n") { it.name }
-        }
+        val selectedBudget = MutableStateFlow<BudgetSummary?>(null)
+
+        val unapprovedTxns = MutableStateFlow(listOf<TransactionDetail>())
 
         root("kvapp") {
             vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
@@ -43,18 +43,29 @@ class App : Application() {
                 maxWidth = 60.perc
                 marginLeft = auto
                 marginRight = auto
-//                alignSelf = AlignItems.CENTER
                 vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
-                    div("Hello You Need A Splitter!")
+                    header {
+                        h1("You Need a Splitter!")
+                    }
 
-                    hPanel(spacing = 5) {
-                    }.bindEach(budgetSummaries) { budget ->
-                        button(text = budget.name) {
-                            onClick {
-                                console.log("Clicked on ${budget.name}")
+                    div().bind(selectedBudget) {budget ->
+                        if (budget != null) {
+                            div("Selected budget: ${budget.name}")
+                        }
+                        else {
+                            budgetSelector(budgetSummaries) { newBudget ->
+                                selectedBudget.value = newBudget
+                                ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
+                                    unapprovedTxns.value = response.data.transactions.toList()
+                                }
                             }
                         }
                     }
+
+                    div().bind(unapprovedTxns) { unapprovedTxns ->
+                        transactionsList(unapprovedTxns)
+                    }
+
                 }
             }
         }
