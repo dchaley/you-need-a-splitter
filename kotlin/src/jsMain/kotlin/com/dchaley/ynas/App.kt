@@ -1,12 +1,12 @@
 package com.dchaley.ynas
 
+import com.dchaley.ynas.util.DataState
 import io.kvision.*
 import io.kvision.core.AlignItems
 import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
-import io.kvision.state.observableState
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.*
 import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
+
+typealias transactionState = DataState<List<TransactionDetail>>
 
 class App : Application() {
     init {
@@ -35,7 +37,7 @@ class App : Application() {
         }
         val selectedBudget = MutableStateFlow<BudgetSummary?>(null)
 
-        val unapprovedTxns = MutableStateFlow(listOf<TransactionDetail>())
+        val loadedTransactions = MutableStateFlow<transactionState>(DataState.Unloaded)
 
         root("kvapp") {
             vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
@@ -55,17 +57,17 @@ class App : Application() {
                         else {
                             budgetSelector(budgetSummaries) { newBudget ->
                                 selectedBudget.value = newBudget
+                                loadedTransactions.value = DataState.Loading
                                 ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
-                                    unapprovedTxns.value = response.data.transactions.toList()
+                                    loadedTransactions.value = DataState.Loaded(response.data.transactions.toList())
                                 }
                             }
                         }
                     }
 
-                    div().bind(unapprovedTxns) { unapprovedTxns ->
-                        transactionsList(unapprovedTxns)
+                    div().bind(loadedTransactions) { state ->
+                        transactionsList(state)
                     }
-
                 }
             }
         }
