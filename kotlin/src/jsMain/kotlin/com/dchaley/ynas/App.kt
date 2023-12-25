@@ -79,7 +79,6 @@ fun main() {
         ::App,
         module.hot,
         BootstrapModule,
-        BootstrapCssModule,
         CoreModule
     )
 }
