@@ -15,7 +15,7 @@ import ynab.TransactionDetail
 
 fun Container.transactionsList(transactionsState : DataState<List<TransactionDetail>>) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount")
-  val tableStyling = setOf(TableType.BORDERED, TableType.STRIPED, TableType.HOVER)
+  val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
   val loadingStyling = tableStyling - TableType.HOVER
 
   when (transactionsState) {

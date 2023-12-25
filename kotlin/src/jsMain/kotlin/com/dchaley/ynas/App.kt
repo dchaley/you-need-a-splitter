@@ -66,7 +66,7 @@ class App : Application() {
                     }
 
                     div().bind(loadedTransactions) { state ->
-                        transactionsList(state)
+                        borderedContainer { transactionsList(state) }
                     }
                 }
             }
