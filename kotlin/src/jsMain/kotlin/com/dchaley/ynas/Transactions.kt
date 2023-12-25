@@ -4,17 +4,19 @@ import com.dchaley.ynas.util.DataState
 import com.dchaley.ynas.util.toUsd
 import io.kvision.core.AlignItems
 import io.kvision.core.Container
+import io.kvision.core.JustifyContent
 import io.kvision.core.WhiteSpace
-import io.kvision.core.style
+import io.kvision.html.ButtonStyle
+import io.kvision.html.button
 import io.kvision.html.h4
 import io.kvision.html.icon
-import io.kvision.html.span
+import io.kvision.panel.hPanel
 import io.kvision.panel.vPanel
 import io.kvision.table.*
 import ynab.TransactionDetail
 
 fun Container.transactionsList(transactionsState : DataState<List<TransactionDetail>>) {
-  val columns = listOf("Date", "Payee", "Category", "Memo", "Amount")
+  val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
   val loadingStyling = tableStyling - TableType.HOVER
 
@@ -58,6 +60,17 @@ fun Container.transactionsList(transactionsState : DataState<List<TransactionDet
             cell(transaction.category_name)
             cell(transaction.memo)
             cell(transaction.amount.toUsd())
+            cell {
+              hPanel(spacing=2, justify = JustifyContent.SPACEBETWEEN) {
+                whiteSpace = WhiteSpace.NOWRAP
+                button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
+                  setAttribute("alt", "split")
+                }
+                button("", "fas fa-thumbs-up fa-lg", style = ButtonStyle.SECONDARY) {
+                  setAttribute("alt", "approve")
+                }
+              }
+            }
           }
         }
       }
