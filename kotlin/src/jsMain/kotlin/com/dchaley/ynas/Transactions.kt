@@ -1,19 +1,19 @@
 package com.dchaley.ynas
 
 import com.dchaley.ynas.util.DataState
+import com.dchaley.ynas.util.percentOf
 import com.dchaley.ynas.util.toUsd
 import io.kvision.core.AlignItems
 import io.kvision.core.Container
 import io.kvision.core.JustifyContent
 import io.kvision.core.WhiteSpace
-import io.kvision.html.ButtonStyle
-import io.kvision.html.button
-import io.kvision.html.h4
-import io.kvision.html.icon
+import io.kvision.html.*
+import io.kvision.panel.gridPanel
 import io.kvision.panel.hPanel
 import io.kvision.panel.vPanel
 import io.kvision.table.*
 import ynab.TransactionDetail
+import kotlin.math.roundToInt
 
 fun Container.transactionsList(transactionsState : DataState<List<TransactionDetail>>) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
@@ -57,7 +57,22 @@ fun Container.transactionsList(transactionsState : DataState<List<TransactionDet
               content = transaction.date
             }
             cell(transaction.payee_name)
-            cell(transaction.category_name)
+            if (transaction.category_name == "Split") {
+              cell {
+                small {
+                  gridPanel(columnGap = 3) {
+                    transaction.subtransactions.forEachIndexed { index, subTransaction ->
+                      val row = index + 1
+                      add(Div(subTransaction.category_name), 1, row)
+                      add(Div(subTransaction.amount.toUsd()), 2, row)
+                      add(Div(subTransaction.amount.percentOf(transaction.amount)), 3, row)
+                    }
+                  }
+                }
+              }
+            } else {
+              cell(transaction.category_name)
+            }
             cell(transaction.memo)
             cell(transaction.amount.toUsd())
             cell {
