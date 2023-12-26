@@ -44,10 +44,10 @@ class App : Application() {
         root("kvapp") {
             vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
                 margin = 15.px
-                maxWidth = 60.perc
+                maxWidth = 75.perc
                 marginLeft = auto
                 marginRight = auto
-                vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
+                vPanel(spacing = 5, alignItems = AlignItems.STRETCH, useWrappers = true) {
                     header {
                         h1("You Need a Splitter!")
                     }

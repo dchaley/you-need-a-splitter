@@ -3,17 +3,13 @@ package com.dchaley.ynas
 import com.dchaley.ynas.util.DataState
 import com.dchaley.ynas.util.percentOf
 import com.dchaley.ynas.util.toUsd
-import io.kvision.core.AlignItems
-import io.kvision.core.Container
-import io.kvision.core.JustifyContent
-import io.kvision.core.WhiteSpace
+import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.panel.gridPanel
 import io.kvision.panel.hPanel
 import io.kvision.panel.vPanel
 import io.kvision.table.*
 import ynab.TransactionDetail
-import kotlin.math.roundToInt
 
 fun Container.transactionsList(transactionsState : DataState<List<TransactionDetail>>) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
@@ -53,12 +49,16 @@ fun Container.transactionsList(transactionsState : DataState<List<TransactionDet
         for (transaction in transactions) {
           row {
             cell {
+              verticalAlign = VerticalAlign.MIDDLE
               whiteSpace = WhiteSpace.NOWRAP
               content = transaction.date
             }
-            cell(transaction.payee_name)
+            cell(transaction.payee_name) {
+              verticalAlign = VerticalAlign.MIDDLE
+            }
             if (transaction.category_name == "Split") {
               cell {
+                verticalAlign = VerticalAlign.MIDDLE
                 small {
                   gridPanel(columnGap = 3) {
                     transaction.subtransactions.forEachIndexed { index, subTransaction ->
@@ -71,18 +71,37 @@ fun Container.transactionsList(transactionsState : DataState<List<TransactionDet
                 }
               }
             } else {
-              cell(transaction.category_name)
+              cell(transaction.category_name) {
+                verticalAlign = VerticalAlign.MIDDLE
+              }
             }
-            cell(transaction.memo)
-            cell(transaction.amount.toUsd())
             cell {
+              verticalAlign = VerticalAlign.MIDDLE
+              if (transaction.memo.orEmpty().isNotEmpty()) {
+                  link("", "#") {
+                    icon("fas fa-note-sticky fa")
+                    setAttribute("aria-label", "view memo")
+                    enableTooltip(TooltipOptions(transaction.memo))
+                  }
+              } else {
+                content = ""
+              }
+            }
+            cell(transaction.amount.toUsd()) {
+              verticalAlign = VerticalAlign.MIDDLE
+            }
+            cell {
+              verticalAlign = VerticalAlign.MIDDLE
               hPanel(spacing=2, justify = JustifyContent.SPACEBETWEEN) {
                 whiteSpace = WhiteSpace.NOWRAP
+                button("", "fas fa-pen-fancy fa-lg", style = ButtonStyle.SECONDARY) {
+                  setAttribute("aria-label", "recategorize")
+                }
                 button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
-                  setAttribute("alt", "split")
+                  setAttribute("aria-label", "split")
                 }
                 button("", "fas fa-thumbs-up fa-lg", style = ButtonStyle.SECONDARY) {
-                  setAttribute("alt", "approve")
+                  setAttribute("aria-label", "approve")
                 }
               }
             }
