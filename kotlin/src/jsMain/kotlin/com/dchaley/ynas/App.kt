@@ -8,16 +8,18 @@ import io.kvision.html.h1
 import io.kvision.html.header
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
+import io.kvision.state.ObservableList
+import io.kvision.state.ObservableValue
 import io.kvision.state.bind
+import io.kvision.state.observableListOf
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
-import kotlinx.coroutines.flow.MutableStateFlow
 import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
 
-typealias transactionState = DataState<List<TransactionDetail>>
+typealias transactionState = DataState<ObservableList<TransactionDetail>>
 
 class App : Application() {
     init {
@@ -33,13 +35,13 @@ class App : Application() {
 
         val ynab = api(accessToken)
 
-        val budgetSummaries = MutableStateFlow(listOf<BudgetSummary>())
+        val budgetSummaries = observableListOf<BudgetSummary>()
         ynab.budgets.getBudgets().then { response ->
-            budgetSummaries.value = response.data.budgets.toList()
+            budgetSummaries.addAll(response.data.budgets)
         }
-        val selectedBudget = MutableStateFlow<BudgetSummary?>(null)
+        val selectedBudget = ObservableValue<BudgetSummary?>(null)
 
-        val loadedTransactions = MutableStateFlow<transactionState>(DataState.Unloaded)
+        val loadedTransactions = ObservableValue<transactionState>(DataState.Unloaded)
 
         root("kvapp") {
             vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
@@ -61,7 +63,7 @@ class App : Application() {
                                 selectedBudget.value = newBudget
                                 loadedTransactions.value = DataState.Loading
                                 ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
-                                    loadedTransactions.value = DataState.Loaded(response.data.transactions.toList())
+                                    loadedTransactions.value = DataState.Loaded(observableListOf(*response.data.transactions))
                                 }
                             }
                         }

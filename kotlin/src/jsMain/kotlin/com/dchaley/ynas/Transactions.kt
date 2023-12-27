@@ -8,10 +8,12 @@ import io.kvision.html.*
 import io.kvision.panel.gridPanel
 import io.kvision.panel.hPanel
 import io.kvision.panel.vPanel
+import io.kvision.state.ObservableList
+import io.kvision.state.bindEach
 import io.kvision.table.*
 import ynab.TransactionDetail
 
-fun Container.transactionsList(transactionsState : DataState<List<TransactionDetail>>) {
+fun Container.transactionsList(transactionsState : DataState<ObservableList<TransactionDetail>>) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
   val loadingStyling = tableStyling - TableType.HOVER
@@ -45,8 +47,8 @@ fun Container.transactionsList(transactionsState : DataState<List<TransactionDet
     }
     is DataState.Loaded -> {
       val transactions = transactionsState.data
-      table(columns, tableStyling, responsiveType = ResponsiveType.RESPONSIVE) {
-        for (transaction in transactions) {
+      table(columns, tableStyling, responsiveType = ResponsiveType.RESPONSIVE)
+        .bindEach(transactions) { transaction ->
           row {
             cell {
               verticalAlign = VerticalAlign.MIDDLE
@@ -106,7 +108,6 @@ fun Container.transactionsList(transactionsState : DataState<List<TransactionDet
               }
             }
           }
-        }
       }
     }
   }
