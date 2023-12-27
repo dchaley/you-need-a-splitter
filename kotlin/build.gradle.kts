@@ -53,6 +53,7 @@ kotlin {
         implementation("io.kvision:kvision-fontawesome:$kvisionVersion")
         implementation("io.kvision:kvision-state:$kvisionVersion")
         implementation("io.kvision:kvision-state-flow:$kvisionVersion")
+        implementation("org.jetbrains.kotlin-wrappers:kotlin-js:1.0.0-pre.599")
         implementation(npm("@fortawesome/fontawesome-svg-core", "6.5.1"))
         implementation(npm("@fortawesome/free-solid-svg-icons", "6.5.1"))
         implementation(npm("@fortawesome/free-regular-svg-icons", "6.5.1"))

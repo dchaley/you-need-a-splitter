@@ -15,6 +15,7 @@ import io.kvision.state.observableListOf
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
+import js.core.structuredClone
 import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
@@ -43,6 +44,18 @@ class App : Application() {
 
         val loadedTransactions = ObservableValue<transactionState>(DataState.Unloaded)
 
+        fun onApprove(transactionDetail: TransactionDetail) {
+            if (loadedTransactions.value !is DataState.Loaded<*>) {
+                console.log("onApprove called when transactions not loaded")
+                return
+            }
+            val list = (loadedTransactions.value as DataState.Loaded<ObservableList<TransactionDetail>>).data
+            val index = list.indexOf(transactionDetail)
+            val copied = structuredClone(transactionDetail)
+            copied.payee_name += " (approved)"
+            list[index] = copied
+        }
+
         root("kvapp") {
             vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
                 margin = 15.px
@@ -70,7 +83,7 @@ class App : Application() {
                     }
 
                     div().bind(loadedTransactions) { state ->
-                        borderedContainer { transactionsList(state) }
+                        borderedContainer { transactionsList(state, onApprove = ::onApprove) }
                     }
                 }
             }

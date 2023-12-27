@@ -13,7 +13,7 @@ import io.kvision.state.bindEach
 import io.kvision.table.*
 import ynab.TransactionDetail
 
-fun Container.transactionsList(transactionsState : DataState<ObservableList<TransactionDetail>>) {
+fun Container.transactionsList(transactionsState: DataState<ObservableList<TransactionDetail>>, onApprove: ((TransactionDetail) -> Unit)? = null) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
   val loadingStyling = tableStyling - TableType.HOVER
@@ -104,7 +104,7 @@ fun Container.transactionsList(transactionsState : DataState<ObservableList<Tran
                 }
                 button("", "fas fa-thumbs-up fa-lg", style = ButtonStyle.SECONDARY) {
                   setAttribute("aria-label", "approve")
-                }
+                }.onClick { onApprove?.invoke(transaction) }
               }
             }
           }
