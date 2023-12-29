@@ -8,10 +8,7 @@ import io.kvision.html.h1
 import io.kvision.html.header
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
-import io.kvision.state.ObservableList
-import io.kvision.state.ObservableValue
-import io.kvision.state.bind
-import io.kvision.state.observableListOf
+import io.kvision.state.*
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
@@ -20,13 +17,20 @@ import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
 
-typealias transactionState = DataState<ObservableList<TransactionDetail>>
-
 class App : Application() {
     init {
         require("@fortawesome/fontawesome-free/js/brands.js")
         require("@fortawesome/fontawesome-free/js/solid.js")
         require("@fortawesome/fontawesome-free/js/fontawesome.js")
+    }
+
+    // define an extension function on ObservableListWrapper that clears and adds all atomically
+    fun <T> ObservableListWrapper<T>.replaceAll(newItems: List<T>) : Boolean {
+        if (this.isEmpty() && newItems.isEmpty()) {
+            return true
+        }
+        this.mutableList.clear()
+        return this.addAll(newItems)
     }
 
     override fun start() {
@@ -42,18 +46,60 @@ class App : Application() {
         }
         val selectedBudget = ObservableValue<BudgetSummary?>(null)
 
-        val loadedTransactions = ObservableValue<transactionState>(DataState.Unloaded)
+        val transactionsStore = ObservableValue<DataState<MutableMap<String, TransactionDetail>>>(DataState.Unloaded)
+
+        val loadedTransactions = ObservableValue<DataState<ObservableList<TransactionDetail>>>(DataState.Unloaded)
+
+        fun updater(state: DataState<MutableMap<String, TransactionDetail>>) {
+            when (state) {
+                is DataState.Unloaded -> {
+                    loadedTransactions.value = DataState.Unloaded
+                }
+
+                is DataState.Loading -> {
+                    loadedTransactions.value = DataState.Loading
+                }
+
+                is DataState.Loaded -> {
+                    val txns = state.data.values
+                    // this could sort by anything… but for now, just sort by date
+                    val sorted = txns.sortedBy { it.date }
+
+                    // We don't want to trigger a re-render if the list is already loaded.
+                    // Setting the value outright (vs replacing contents) triggers a higher-level re-render.
+                    if (loadedTransactions.value !is DataState.Loaded<*>) {
+                        loadedTransactions.value = DataState.Loaded(observableListOf(*sorted.toTypedArray()))
+                    }
+                    else {
+                        val existingList = (loadedTransactions.value as DataState.Loaded<ObservableList<TransactionDetail>>).data
+                        (existingList as ObservableListWrapper).replaceAll(sorted)
+                    }
+                }
+            }
+        }
+
+        transactionsStore.subscribe { state ->
+            updater(state)
+        }
+
+        fun updateTransaction(original: TransactionDetail, updated: TransactionDetail) {
+            val storedTransactions = (transactionsStore.value as DataState.Loaded<MutableMap<String, TransactionDetail>>).data
+
+            // replace the old object with the updated one
+            storedTransactions[original.id] = updated
+
+            updater(transactionsStore.value)
+        }
 
         fun onApprove(transactionDetail: TransactionDetail) {
             if (loadedTransactions.value !is DataState.Loaded<*>) {
                 console.log("onApprove called when transactions not loaded")
                 return
             }
-            val list = (loadedTransactions.value as DataState.Loaded<ObservableList<TransactionDetail>>).data
-            val index = list.indexOf(transactionDetail)
             val copied = structuredClone(transactionDetail)
             copied.payee_name += " (approved)"
-            list[index] = copied
+
+            updateTransaction(transactionDetail, copied)
         }
 
         root("kvapp") {
@@ -76,7 +122,8 @@ class App : Application() {
                                 selectedBudget.value = newBudget
                                 loadedTransactions.value = DataState.Loading
                                 ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
-                                    loadedTransactions.value = DataState.Loaded(observableListOf(*response.data.transactions))
+                                    val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
+                                    transactionsStore.value = DataState.Loaded(mutableMapOf(*pairs))
                                 }
                             }
                         }

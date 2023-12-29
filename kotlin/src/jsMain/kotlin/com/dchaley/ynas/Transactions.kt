@@ -11,7 +11,37 @@ import io.kvision.panel.vPanel
 import io.kvision.state.ObservableList
 import io.kvision.state.bindEach
 import io.kvision.table.*
+import ynab.SubTransaction
 import ynab.TransactionDetail
+import kotlin.random.Random
+
+fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
+  // Make sure every field is equal.
+  val x = a.id == b.id &&
+          a.date == b.date &&
+          a.amount == b.amount &&
+          a.memo == b.memo &&
+          a.cleared == b.cleared &&
+          a.approved == b.approved &&
+          a.flag_color == b.flag_color &&
+          a.account_id == b.account_id &&
+          a.payee_id == b.payee_id &&
+          a.category_id == b.category_id &&
+          a.transfer_account_id == b.transfer_account_id &&
+          a.transfer_transaction_id == b.transfer_transaction_id &&
+          a.matched_transaction_id == b.matched_transaction_id &&
+          a.import_id == b.import_id &&
+          a.import_payee_name == b.import_payee_name &&
+          a.import_payee_name_original == b.import_payee_name_original &&
+          a.debt_transaction_type == b.debt_transaction_type &&
+          a.deleted == b.deleted &&
+          a.account_name == b.account_name &&
+          a.payee_name == b.payee_name &&
+          a.category_name == b.category_name &&
+          a.subtransactions.contentEquals(b.subtransactions)
+
+  return x
+}
 
 fun Container.transactionsList(transactionsState: DataState<ObservableList<TransactionDetail>>, onApprove: ((TransactionDetail) -> Unit)? = null) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
@@ -48,7 +78,7 @@ fun Container.transactionsList(transactionsState: DataState<ObservableList<Trans
     is DataState.Loaded -> {
       val transactions = transactionsState.data
       table(columns, tableStyling, responsiveType = ResponsiveType.RESPONSIVE)
-        .bindEach(transactions) { transaction ->
+        .bindEach(transactions, equalizer = ::equalTester) { transaction ->
           row {
             cell {
               verticalAlign = VerticalAlign.MIDDLE
@@ -75,6 +105,7 @@ fun Container.transactionsList(transactionsState: DataState<ObservableList<Trans
             } else {
               cell(transaction.category_name) {
                 verticalAlign = VerticalAlign.MIDDLE
+                color = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
               }
             }
             cell {
