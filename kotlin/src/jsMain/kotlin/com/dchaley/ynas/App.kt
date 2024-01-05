@@ -20,13 +20,79 @@ import ynab.api
 
 class DataModel {
     private val budgetsObservable = ObservableValue<DataState<ObservableList<BudgetSummary>>>(DataState.Unloaded)
+    private val selectedBudgetObservable = ObservableValue<BudgetSummary?>(null)
+    private val transactionsStoreObservable = ObservableValue<DataState<MutableMap<String, TransactionDetail>>>(DataState.Unloaded)
+    private val displayedTransactionsObservable = ObservableValue<DataState<ObservableList<TransactionDetail>>>(DataState.Unloaded)
 
     var budgets: DataState<ObservableList<BudgetSummary>>
         get() = budgetsObservable.value
         set(value) { budgetsObservable.value = value }
 
+    var selectedBudget: BudgetSummary?
+        get() = selectedBudgetObservable.value
+        set(value) { selectedBudgetObservable.value = value }
+
+    var transactionsStore: DataState<MutableMap<String, TransactionDetail>>
+        get() = transactionsStoreObservable.value
+        set(value) {
+            transactionsStoreObservable.value = value
+            updateDisplayedTxns()
+        }
+
+    var displayedTransactions: DataState<ObservableList<TransactionDetail>>
+        get() = displayedTransactionsObservable.value
+        set(value) { displayedTransactionsObservable.value = value }
+
+    fun updateDisplayedTxns() {
+        when (transactionsStore) {
+            is DataState.Unloaded -> {
+                displayedTransactions = DataState.Unloaded
+            }
+
+            is DataState.Loading -> {
+                displayedTransactions = DataState.Loading
+            }
+
+            is DataState.Loaded -> {
+                val txns = (transactionsStore as DataState.Loaded<MutableMap<String, TransactionDetail>>).data.values
+                // this could sort by anything… but for now, just sort by date
+                val sorted = txns.sortedBy { it.date }
+
+                // We don't want to trigger a re-render if the list is already loaded.
+                // Setting the value outright (vs replacing contents) triggers a higher-level re-render.
+                if (displayedTransactions !is DataState.Loaded<*>) {
+                    displayedTransactions = DataState.Loaded(observableListOf(*sorted.toTypedArray()))
+                }
+                else {
+                    val existingList = (displayedTransactions as DataState.Loaded<ObservableList<TransactionDetail>>).data
+                    (existingList as ObservableListWrapper).replaceAll(sorted)
+                }
+            }
+        }
+    }
+
+    fun updateTransaction(original: TransactionDetail, updated: TransactionDetail) {
+        // replace the old object with the updated one
+        val storedTransactions = (transactionsStore as DataState.Loaded<MutableMap<String, TransactionDetail>>).data
+        storedTransactions[original.id] = updated
+
+        updateDisplayedTxns()
+    }
+
     fun observeBudgets(): ObservableValue<DataState<ObservableList<BudgetSummary>>> {
         return budgetsObservable
+    }
+
+    fun observeSelectedBudget(): ObservableValue<BudgetSummary?> {
+        return selectedBudgetObservable
+    }
+
+    fun observeTransactionsStore(): ObservableValue<DataState<MutableMap<String, TransactionDetail>>> {
+        return transactionsStoreObservable
+    }
+
+    fun observeDisplayedTransactions(): ObservableValue<DataState<ObservableList<TransactionDetail>>> {
+        return displayedTransactionsObservable
     }
 }
 
@@ -50,62 +116,19 @@ class App : Application() {
         ynab.budgets.getBudgets().then { response ->
             dataModel.budgets = DataState.Loaded(observableListOf(*response.data.budgets))
         }
-        val selectedBudget = ObservableValue<BudgetSummary?>(null)
 
-        val transactionsStore = ObservableValue<DataState<MutableMap<String, TransactionDetail>>>(DataState.Unloaded)
-
-        val loadedTransactions = ObservableValue<DataState<ObservableList<TransactionDetail>>>(DataState.Unloaded)
-
-        fun updater(state: DataState<MutableMap<String, TransactionDetail>>) {
-            when (state) {
-                is DataState.Unloaded -> {
-                    loadedTransactions.value = DataState.Unloaded
-                }
-
-                is DataState.Loading -> {
-                    loadedTransactions.value = DataState.Loading
-                }
-
-                is DataState.Loaded -> {
-                    val txns = state.data.values
-                    // this could sort by anything… but for now, just sort by date
-                    val sorted = txns.sortedBy { it.date }
-
-                    // We don't want to trigger a re-render if the list is already loaded.
-                    // Setting the value outright (vs replacing contents) triggers a higher-level re-render.
-                    if (loadedTransactions.value !is DataState.Loaded<*>) {
-                        loadedTransactions.value = DataState.Loaded(observableListOf(*sorted.toTypedArray()))
-                    }
-                    else {
-                        val existingList = (loadedTransactions.value as DataState.Loaded<ObservableList<TransactionDetail>>).data
-                        (existingList as ObservableListWrapper).replaceAll(sorted)
-                    }
-                }
-            }
-        }
-
-        transactionsStore.subscribe { state ->
-            updater(state)
-        }
-
-        fun updateTransaction(original: TransactionDetail, updated: TransactionDetail) {
-            val storedTransactions = (transactionsStore.value as DataState.Loaded<MutableMap<String, TransactionDetail>>).data
-
-            // replace the old object with the updated one
-            storedTransactions[original.id] = updated
-
-            updater(transactionsStore.value)
+        dataModel.observeTransactionsStore().subscribe { _ ->
         }
 
         fun onApprove(transactionDetail: TransactionDetail) {
-            if (loadedTransactions.value !is DataState.Loaded<*>) {
+            if (dataModel.displayedTransactions !is DataState.Loaded<*>) {
                 console.log("onApprove called when transactions not loaded")
                 return
             }
             val copied = structuredClone(transactionDetail)
             copied.payee_name += " (approved)"
 
-            updateTransaction(transactionDetail, copied)
+            dataModel.updateTransaction(transactionDetail, copied)
         }
 
         root("kvapp") {
@@ -119,25 +142,25 @@ class App : Application() {
                         h1("You Need a Splitter!")
                     }
 
-                    div().bind(selectedBudget) {budget ->
+                    div().bind(dataModel.observeSelectedBudget()) { budget ->
                         if (budget != null) {
                             div("Selected budget: ${budget.name}")
                         }
                         else {
                             div().bind(dataModel.observeBudgets()) { state ->
                                 budgetSelector(state) { newBudget ->
-                                    selectedBudget.value = newBudget
-                                    loadedTransactions.value = DataState.Loading
+                                    dataModel.selectedBudget = newBudget
+                                    dataModel.displayedTransactions = DataState.Loading
                                     ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
                                         val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
-                                        transactionsStore.value = DataState.Loaded(mutableMapOf(*pairs))
+                                        dataModel.transactionsStore = DataState.Loaded(mutableMapOf(*pairs))
                                     }
                                 }
                             }
                         }
                     }
 
-                    div().bind(loadedTransactions) { state ->
+                    div().bind(dataModel.observeDisplayedTransactions()) { state ->
                         borderedContainer { transactionsList(state, onApprove = ::onApprove) }
                     }
                 }
