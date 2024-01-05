@@ -1,5 +1,6 @@
 package com.dchaley.ynas
 
+import com.dchaley.ynas.util.DataState
 import io.kvision.core.Container
 import io.kvision.html.*
 import io.kvision.panel.hPanel
@@ -9,10 +10,9 @@ import io.kvision.state.bindEach
 import kotlinx.coroutines.flow.StateFlow
 import ynab.BudgetSummary
 
-fun Container.budgetSelector(budgetSummaries: ObservableList<BudgetSummary>, onBudgetSelect: (BudgetSummary) -> Unit) {
-
-  div().bind(budgetSummaries) { budgets ->
-    if (budgets.isEmpty()) {
+fun Container.budgetSelector(budgetSummaries: DataState<ObservableList<BudgetSummary>>, onBudgetSelect: (BudgetSummary) -> Unit) {
+  when (budgetSummaries) {
+    is DataState.Unloaded, DataState.Loading -> {
       hPanel(spacing = 5) {
         div {
           icon("fas fa-spinner fa-spin")
@@ -20,10 +20,10 @@ fun Container.budgetSelector(budgetSummaries: ObservableList<BudgetSummary>, onB
         div("Loading budgets…")
       }
     }
-    else {
+    is DataState.Loaded -> {
       label("Select a budget:")
       hPanel(spacing = 5) {
-      }.bindEach(budgetSummaries) { budget ->
+      }.bindEach(budgetSummaries.data) { budget ->
         button(text = budget.name) {
           onClick {
             onBudgetSelect(budget)

@@ -1,6 +1,7 @@
 package com.dchaley.ynas
 
 import com.dchaley.ynas.util.DataState
+import com.dchaley.ynas.util.replaceAll
 import io.kvision.*
 import io.kvision.core.AlignItems
 import io.kvision.html.div
@@ -17,6 +18,18 @@ import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
 
+class DataModel {
+    private val budgetsObservable = ObservableValue<DataState<ObservableList<BudgetSummary>>>(DataState.Unloaded)
+
+    var budgets: DataState<ObservableList<BudgetSummary>>
+        get() = budgetsObservable.value
+        set(value) { budgetsObservable.value = value }
+
+    fun observeBudgets(): ObservableValue<DataState<ObservableList<BudgetSummary>>> {
+        return budgetsObservable
+    }
+}
+
 class App : Application() {
     init {
         require("@fortawesome/fontawesome-free/js/brands.js")
@@ -24,14 +37,6 @@ class App : Application() {
         require("@fortawesome/fontawesome-free/js/fontawesome.js")
     }
 
-    // define an extension function on ObservableListWrapper that clears and adds all atomically
-    fun <T> ObservableListWrapper<T>.replaceAll(newItems: List<T>) : Boolean {
-        if (this.isEmpty() && newItems.isEmpty()) {
-            return true
-        }
-        this.mutableList.clear()
-        return this.addAll(newItems)
-    }
 
     override fun start() {
         // Read the variable YNAB_ACCESS_TOKEN from the environment (see config.js in webpack.config.d)
@@ -40,9 +45,10 @@ class App : Application() {
 
         val ynab = api(accessToken)
 
-        val budgetSummaries = observableListOf<BudgetSummary>()
+        val dataModel = DataModel()
+
         ynab.budgets.getBudgets().then { response ->
-            budgetSummaries.addAll(response.data.budgets)
+            dataModel.budgets = DataState.Loaded(observableListOf(*response.data.budgets))
         }
         val selectedBudget = ObservableValue<BudgetSummary?>(null)
 
@@ -118,12 +124,14 @@ class App : Application() {
                             div("Selected budget: ${budget.name}")
                         }
                         else {
-                            budgetSelector(budgetSummaries) { newBudget ->
-                                selectedBudget.value = newBudget
-                                loadedTransactions.value = DataState.Loading
-                                ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
-                                    val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
-                                    transactionsStore.value = DataState.Loaded(mutableMapOf(*pairs))
+                            div().bind(dataModel.observeBudgets()) { state ->
+                                budgetSelector(state) { newBudget ->
+                                    selectedBudget.value = newBudget
+                                    loadedTransactions.value = DataState.Loading
+                                    ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
+                                        val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
+                                        transactionsStore.value = DataState.Loaded(mutableMapOf(*pairs))
+                                    }
                                 }
                             }
                         }
