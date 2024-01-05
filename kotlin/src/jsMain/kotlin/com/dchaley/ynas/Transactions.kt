@@ -11,9 +11,7 @@ import io.kvision.panel.vPanel
 import io.kvision.state.ObservableList
 import io.kvision.state.bindEach
 import io.kvision.table.*
-import ynab.SubTransaction
 import ynab.TransactionDetail
-import kotlin.random.Random
 
 fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
   // Make sure every field is equal.
