@@ -10,7 +10,7 @@ package com.dchaley.ynas.util
 sealed class DataState<out T> {
   data object Unloaded : DataState<Nothing>()
   data object Loading : DataState<Nothing>()
-  data class Loaded<T>(val data: T) : DataState<T>()
+  data class Loaded<T>(var data: T) : DataState<T>()
 
   // Guess we need to handle errors some day…
   // data class Error(val exception: Throwable) : DataState<Nothing>()
