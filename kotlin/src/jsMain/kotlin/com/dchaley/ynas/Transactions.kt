@@ -105,7 +105,6 @@ fun Container.transactionsList(transactionsState: DataState<ObservableList<Trans
             } else {
               cell(transaction.category_name) {
                 verticalAlign = VerticalAlign.MIDDLE
-                color = Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
               }
             }
             cell {
