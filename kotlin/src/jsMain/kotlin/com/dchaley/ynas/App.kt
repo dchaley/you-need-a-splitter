@@ -1,7 +1,6 @@
 package com.dchaley.ynas
 
 import com.dchaley.ynas.util.DataState
-import com.dchaley.ynas.util.replaceAll
 import io.kvision.*
 import io.kvision.core.AlignItems
 import io.kvision.html.div
@@ -14,87 +13,8 @@ import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
 import js.core.structuredClone
-import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
-
-class DataModel {
-    private val budgetsObservable = ObservableValue<DataState<ObservableList<BudgetSummary>>>(DataState.Unloaded)
-    private val selectedBudgetObservable = ObservableValue<BudgetSummary?>(null)
-    private val transactionsStoreObservable = ObservableValue<DataState<MutableMap<String, TransactionDetail>>>(DataState.Unloaded)
-    private val displayedTransactionsObservable = ObservableValue<DataState<ObservableList<TransactionDetail>>>(DataState.Unloaded)
-
-    var budgets: DataState<ObservableList<BudgetSummary>>
-        get() = budgetsObservable.value
-        set(value) { budgetsObservable.value = value }
-
-    var selectedBudget: BudgetSummary?
-        get() = selectedBudgetObservable.value
-        set(value) { selectedBudgetObservable.value = value }
-
-    var transactionsStore: DataState<MutableMap<String, TransactionDetail>>
-        get() = transactionsStoreObservable.value
-        set(value) {
-            transactionsStoreObservable.value = value
-            updateDisplayedTxns()
-        }
-
-    var displayedTransactions: DataState<ObservableList<TransactionDetail>>
-        get() = displayedTransactionsObservable.value
-        set(value) { displayedTransactionsObservable.value = value }
-
-    fun updateDisplayedTxns() {
-        when (transactionsStore) {
-            is DataState.Unloaded -> {
-                displayedTransactions = DataState.Unloaded
-            }
-
-            is DataState.Loading -> {
-                displayedTransactions = DataState.Loading
-            }
-
-            is DataState.Loaded -> {
-                val txns = (transactionsStore as DataState.Loaded<MutableMap<String, TransactionDetail>>).data.values
-                // this could sort by anything… but for now, just sort by date
-                val sorted = txns.sortedBy { it.date }
-
-                // We don't want to trigger a re-render if the list is already loaded.
-                // Setting the value outright (vs replacing contents) triggers a higher-level re-render.
-                if (displayedTransactions !is DataState.Loaded<*>) {
-                    displayedTransactions = DataState.Loaded(observableListOf(*sorted.toTypedArray()))
-                }
-                else {
-                    val existingList = (displayedTransactions as DataState.Loaded<ObservableList<TransactionDetail>>).data
-                    (existingList as ObservableListWrapper).replaceAll(sorted)
-                }
-            }
-        }
-    }
-
-    fun updateTransaction(original: TransactionDetail, updated: TransactionDetail) {
-        // replace the old object with the updated one
-        val storedTransactions = (transactionsStore as DataState.Loaded<MutableMap<String, TransactionDetail>>).data
-        storedTransactions[original.id] = updated
-
-        updateDisplayedTxns()
-    }
-
-    fun observeBudgets(): ObservableValue<DataState<ObservableList<BudgetSummary>>> {
-        return budgetsObservable
-    }
-
-    fun observeSelectedBudget(): ObservableValue<BudgetSummary?> {
-        return selectedBudgetObservable
-    }
-
-    fun observeTransactionsStore(): ObservableValue<DataState<MutableMap<String, TransactionDetail>>> {
-        return transactionsStoreObservable
-    }
-
-    fun observeDisplayedTransactions(): ObservableValue<DataState<ObservableList<TransactionDetail>>> {
-        return displayedTransactionsObservable
-    }
-}
 
 class App : Application() {
     init {
@@ -127,6 +47,11 @@ class App : Application() {
             }
             val copied = structuredClone(transactionDetail)
             copied.payee_name += " (approved)"
+
+            // TODO: implement transaction approval.
+            // Issue the call to ynab budget.
+            // When it comes back successfully, insert it into the data model.
+            // In the meantime, give it a spinny!
 
             dataModel.updateTransaction(transactionDetail, copied)
         }
