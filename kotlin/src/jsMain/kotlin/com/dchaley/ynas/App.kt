@@ -13,6 +13,7 @@ import io.kvision.utils.em
 import io.kvision.utils.perc
 import io.kvision.utils.px
 import js.core.structuredClone
+import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
 
@@ -57,6 +58,15 @@ class App : Application() {
       dataModel.updateTransaction(transactionDetail, copied)
     }
 
+    fun onSelectBudget(budget: BudgetSummary) {
+      dataModel.selectedBudget = budget
+      dataModel.transactionsStore = DataState.Loading
+      ynab.transactions.getTransactions(budget.id, type = "unapproved").then { response ->
+        val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
+        dataModel.transactionsStore = DataState.Loaded(mutableMapOf(*pairs))
+      }
+    }
+
     root("kvapp") {
       vPanel(alignItems = AlignItems.STRETCH, useWrappers = true) {
         margin = 15.px
@@ -68,23 +78,18 @@ class App : Application() {
             h1("You Need a Splitter!")
           }
 
+          // This part of the UI shows the selected budget or a selector.
           div().bind(dataModel.observeSelectedBudget()) { budget ->
             if (budget != null) {
               div("Selected budget: ${budget.name}")
             } else {
               div().bind(dataModel.observeBudgets()) { state ->
-                budgetSelector(state) { newBudget ->
-                  dataModel.selectedBudget = newBudget
-                  dataModel.transactionsStore = DataState.Loading
-                  ynab.transactions.getTransactions(newBudget.id, type = "unapproved").then { response ->
-                    val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
-                    dataModel.transactionsStore = DataState.Loaded(mutableMapOf(*pairs))
-                  }
-                }
+                budgetSelector(state, ::onSelectBudget)
               }
             }
           }
 
+          // This part of the UI shows the transactions for the selected budget.
           div().bind(dataModel.observeTransactionsStore()) { state ->
             borderedContainer {
               padding = 2.em
