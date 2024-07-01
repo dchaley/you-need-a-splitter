@@ -3,12 +3,11 @@ package com.dchaley.ynas
 import com.dchaley.ynas.util.DataState
 import io.kvision.*
 import io.kvision.core.AlignItems
-import io.kvision.html.div
-import io.kvision.html.h1
-import io.kvision.html.header
+import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
-import io.kvision.state.*
+import io.kvision.state.bind
+import io.kvision.state.observableListOf
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
@@ -29,6 +28,7 @@ class App : Application() {
         val env = js("PROCESS_ENV")
         val accessToken = env.YNAB_ACCESS_TOKEN as String
 
+        // The YNAB API client.
         val ynab = api(accessToken)
 
         val dataModel = DataModel()
@@ -85,8 +85,27 @@ class App : Application() {
                         }
                     }
 
-                    div().bind(dataModel.observeDisplayedTransactions()) { state ->
-                        borderedContainer { transactionsList(state, onApprove = ::onApprove) }
+                    div().bind(dataModel.observeTransactionsStore()) { state ->
+                        borderedContainer {
+                            when (state) {
+                                is DataState.Unloaded -> {
+                                    vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
+                                        h4("no transactions loaded!")
+                                    }
+                                }
+
+                                is DataState.Loading -> {
+                                    vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
+                                        icon("fas fa-spinner fa-xl fa-spin")
+                                        h4("loading transactions…")
+                                    }
+                                }
+
+                                is DataState.Loaded -> {
+                                    transactionsList(dataModel.displayedTransactions, onApprove = ::onApprove)
+                                }
+                            }
+                        }
                     }
                 }
             }

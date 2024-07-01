@@ -52,9 +52,6 @@ fun Container.transactionsList(transactionsState: DataState<ObservableList<Trans
         row {
           cell() {
             setAttribute("colspan", columns.size.toString())
-            vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
-              h4("no transactions loaded!")
-            }
           }
         }
       }
