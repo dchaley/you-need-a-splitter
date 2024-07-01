@@ -15,7 +15,7 @@ class DataModel {
     private val transactionsStoreObservable =
       ObservableValue<DataState<MutableMap<String, TransactionDetail>>>(DataState.Unloaded)
     private val displayedTransactionsObservable =
-      ObservableValue<DataState<ObservableList<TransactionDetail>>>(DataState.Unloaded)
+      ObservableValue(observableListOf<TransactionDetail>())
 
     var budgets: DataState<ObservableList<BudgetSummary>>
         get() = budgetsObservable.value
@@ -32,18 +32,18 @@ class DataModel {
             updateDisplayedTxns()
         }
 
-    var displayedTransactions: DataState<ObservableList<TransactionDetail>>
+    var displayedTransactions: ObservableList<TransactionDetail>
         get() = displayedTransactionsObservable.value
         set(value) { displayedTransactionsObservable.value = value }
 
     fun updateDisplayedTxns() {
         when (transactionsStore) {
             is DataState.Unloaded -> {
-                displayedTransactions = DataState.Unloaded
+                displayedTransactions = observableListOf()
             }
 
             is DataState.Loading -> {
-                displayedTransactions = DataState.Loading
+                displayedTransactions = observableListOf()
             }
 
             is DataState.Loaded -> {
@@ -62,7 +62,7 @@ class DataModel {
                 else {
                     // If we aren't already loaded, just set the value.
                     // This will
-                    displayedTransactions = DataState.Loaded(observableListOf(*sorted.toTypedArray()))
+                    displayedTransactions = observableListOf(*sorted.toTypedArray())
                 }
             }
         }
@@ -88,7 +88,7 @@ class DataModel {
         return transactionsStoreObservable
     }
 
-    fun observeDisplayedTransactions(): ObservableValue<DataState<ObservableList<TransactionDetail>>> {
+    fun observeDisplayedTransactions(): ObservableValue<ObservableList<TransactionDetail>> {
         return displayedTransactionsObservable
     }
 }

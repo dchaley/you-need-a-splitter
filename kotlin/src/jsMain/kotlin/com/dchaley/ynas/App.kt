@@ -3,12 +3,15 @@ package com.dchaley.ynas
 import com.dchaley.ynas.util.DataState
 import io.kvision.*
 import io.kvision.core.AlignItems
+import io.kvision.core.CssSize
+import io.kvision.core.UNIT
 import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
 import io.kvision.state.observableListOf
 import io.kvision.utils.auto
+import io.kvision.utils.em
 import io.kvision.utils.perc
 import io.kvision.utils.px
 import js.core.structuredClone
@@ -75,7 +78,7 @@ class App : Application() {
                             div().bind(dataModel.observeBudgets()) { state ->
                                 budgetSelector(state) { newBudget ->
                                     dataModel.selectedBudget = newBudget
-                                    dataModel.displayedTransactions = DataState.Loading
+                                    dataModel.transactionsStore = DataState.Loading
                                     ynab.transactions.getTransactions(newBudget.id, type="unapproved").then { response ->
                                         val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
                                         dataModel.transactionsStore = DataState.Loaded(mutableMapOf(*pairs))
@@ -87,24 +90,24 @@ class App : Application() {
 
                     div().bind(dataModel.observeTransactionsStore()) { state ->
                         borderedContainer {
+                          padding = 2.em
+                          vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
+                            padding = 2.em
                             when (state) {
-                                is DataState.Unloaded -> {
-                                    vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
-                                        h4("no transactions loaded!")
-                                    }
-                                }
+                              is DataState.Unloaded -> {
+                                h4("no transactions loaded!")
+                              }
 
-                                is DataState.Loading -> {
-                                    vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
-                                        icon("fas fa-spinner fa-xl fa-spin")
-                                        h4("loading transactions…")
-                                    }
-                                }
+                              is DataState.Loading -> {
+                                icon("fas fa-spinner fa-xl fa-spin")
+                                h4("loading transactions…")
+                              }
 
-                                is DataState.Loaded -> {
-                                    transactionsList(dataModel.displayedTransactions, onApprove = ::onApprove)
-                                }
+                              is DataState.Loaded -> {
+                                transactionsList(dataModel.displayedTransactions, onApprove = ::onApprove)
+                              }
                             }
+                          }
                         }
                     }
                 }
