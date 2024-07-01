@@ -11,7 +11,10 @@ import io.kvision.state.ObservableList
 import io.kvision.state.bindEach
 import ynab.BudgetSummary
 
-fun Container.budgetSelector(budgetSummaries: DataState<ObservableList<BudgetSummary>>, onBudgetSelect: (BudgetSummary) -> Unit) {
+fun Container.budgetSelector(
+  budgetSummaries: DataState<ObservableList<BudgetSummary>>,
+  onBudgetSelect: (BudgetSummary) -> Unit
+) {
   when (budgetSummaries) {
     is DataState.Unloaded, DataState.Loading -> {
       hPanel(spacing = 5) {
@@ -21,6 +24,7 @@ fun Container.budgetSelector(budgetSummaries: DataState<ObservableList<BudgetSum
         div("Loading budgets…")
       }
     }
+
     is DataState.Loaded -> {
       label("Select a budget:")
       hPanel(spacing = 5) {
