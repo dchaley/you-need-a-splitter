@@ -12,7 +12,6 @@ import io.kvision.utils.auto
 import io.kvision.utils.em
 import io.kvision.utils.perc
 import io.kvision.utils.px
-import js.core.structuredClone
 import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
@@ -47,15 +46,17 @@ class App : Application() {
         console.log("onApprove called when transactions not loaded")
         return
       }
-      val copied = structuredClone(transactionDetail)
-      copied.payee_name += " (approved)"
 
-      // TODO: implement transaction approval.
-      // Issue the call to ynab budget.
-      // When it comes back successfully, insert it into the data model.
-      // In the meantime, give it a spinny!
+      val req = js("{transaction: {}}")
+      req.transaction.approved = true
 
-      dataModel.updateTransaction(transactionDetail, copied)
+      ynab.transactions.updateTransaction(
+        dataModel.selectedBudget!!.id, transactionDetail.id, req
+      ).then { response ->
+        dataModel.updateTransaction(transactionDetail, response.data.transaction)
+      }.catch { error ->
+        console.error("Error updating transaction: $error")
+      }
     }
 
     fun onUnapprove(transactionDetail: TransactionDetail) {
@@ -63,15 +64,17 @@ class App : Application() {
         console.log("onUnapprove called when transactions not loaded")
         return
       }
-      val copied = structuredClone(transactionDetail)
-      copied.payee_name += " (unapproved)"
 
-      // TODO: implement transaction unapproval.
-      // Issue the call to ynab budget.
-      // When it comes back successfully, insert it into the data model.
-      // In the meantime, give it a spinny!
+      val req = js("{transaction: {}}")
+      req.transaction.approved = false
 
-      dataModel.updateTransaction(transactionDetail, copied)
+      ynab.transactions.updateTransaction(
+        dataModel.selectedBudget!!.id, transactionDetail.id, req
+      ).then { response ->
+        dataModel.updateTransaction(transactionDetail, response.data.transaction)
+      }.catch { error ->
+        console.error("Error updating transaction: $error")
+      }
     }
 
     fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {

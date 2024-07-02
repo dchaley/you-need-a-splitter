@@ -12,6 +12,10 @@ import io.kvision.table.*
 import ynab.TransactionDetail
 
 fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
+  // We need this if we update txn fields directly.
+  // If we only ever update by replacing the object, this is unnecessary.
+  // If we had fixed fields (vs mutable), there'd be no way to update the fields directly.
+
   // Make sure every field is equal.
   val x = a.id == b.id &&
           a.date == b.date &&
