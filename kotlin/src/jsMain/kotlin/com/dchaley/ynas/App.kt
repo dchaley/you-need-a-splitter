@@ -58,10 +58,11 @@ class App : Application() {
       dataModel.updateTransaction(transactionDetail, copied)
     }
 
-    fun onSelectBudget(budget: BudgetSummary) {
+    fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {
       dataModel.selectedBudget = budget
       dataModel.transactionsStore = DataState.Loading
-      ynab.transactions.getTransactions(budget.id, type = "unapproved").then { response ->
+      val txnType = if (onlyUnapproved) "unapproved" else ""
+      ynab.transactions.getTransactions(budget.id, type = txnType).then { response ->
         val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
         dataModel.transactionsStore = DataState.Loaded(mutableMapOf(*pairs))
       }
