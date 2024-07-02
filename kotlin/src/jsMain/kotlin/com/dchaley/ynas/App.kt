@@ -43,7 +43,7 @@ class App : Application() {
     }
 
     fun onApprove(transactionDetail: TransactionDetail) {
-      if (dataModel.displayedTransactions !is DataState.Loaded<*>) {
+      if (dataModel.transactionsStore !is DataState.Loaded<*>) {
         console.log("onApprove called when transactions not loaded")
         return
       }

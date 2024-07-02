@@ -56,19 +56,7 @@ class DataModel {
         val txns = (transactionsStore as DataState.Loaded<MutableMap<String, TransactionDetail>>).data.values
         // this could sort by anything… but for now, just sort by date
         val sorted = txns.sortedBy { it.date }
-
-        // We don't want to trigger a re-render if the list is already loaded.
-        // Setting the value outright (vs replacing contents) triggers a higher-level re-render.
-        if (displayedTransactions is DataState.Loaded<*>) {
-          // The transaction store itself is not changing: it is still loaded.
-          // Clients observe the observable list of transactions.
-          val existingList = (displayedTransactions as DataState.Loaded<ObservableList<TransactionDetail>>).data
-          (existingList as ObservableListWrapper).replaceAll(sorted)
-        } else {
-          // If we aren't already loaded, just set the value.
-          // This will
-          displayedTransactions = observableListOf(*sorted.toTypedArray())
-        }
+        (displayedTransactions as ObservableListWrapper).replaceAll(sorted)
       }
     }
   }
@@ -91,9 +79,5 @@ class DataModel {
 
   fun observeTransactionsStore(): ObservableValue<DataState<MutableMap<String, TransactionDetail>>> {
     return transactionsStoreObservable
-  }
-
-  fun observeDisplayedTransactions(): ObservableValue<ObservableList<TransactionDetail>> {
-    return displayedTransactionsObservable
   }
 }
