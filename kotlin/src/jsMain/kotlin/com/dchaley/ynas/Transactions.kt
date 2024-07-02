@@ -12,6 +12,10 @@ import io.kvision.table.*
 import ynab.TransactionDetail
 
 fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
+  // We need this if we update txn fields directly.
+  // If we only ever update by replacing the object, this is unnecessary.
+  // If we had fixed fields (vs mutable), there'd be no way to update the fields directly.
+
   // Make sure every field is equal.
   val x = a.id == b.id &&
           a.date == b.date &&
@@ -41,7 +45,8 @@ fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
 
 fun Container.transactionsList(
   transactions: ObservableList<TransactionDetail>,
-  onApprove: ((TransactionDetail) -> Unit)? = null
+  onApprove: ((TransactionDetail) -> Unit)? = null,
+  onUnapprove: ((TransactionDetail) -> Unit)? = null,
 ) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
@@ -101,9 +106,23 @@ fun Container.transactionsList(
             button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
               setAttribute("aria-label", "split")
             }
-            button("", "fas fa-thumbs-up fa-lg", style = ButtonStyle.SECONDARY) {
-              setAttribute("aria-label", "approve")
-            }.onClick { onApprove?.invoke(transaction) }
+            if (transaction.approved) {
+              button("", style = ButtonStyle.OUTLINESECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  icon("fas fa-thumbs-down fa-lg")
+                }
+                setAttribute("aria-label", "unapprove")
+              }.onClick { onUnapprove?.invoke(transaction) }
+            } else {
+              button("", style = ButtonStyle.SECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  icon("fas fa-thumbs-up fa-lg")
+                }
+                setAttribute("aria-label", "approve")
+              }.onClick { onApprove?.invoke(transaction) }
+            }
           }
         }
       }
