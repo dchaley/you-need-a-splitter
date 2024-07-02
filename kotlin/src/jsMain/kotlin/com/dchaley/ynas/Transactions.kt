@@ -80,7 +80,7 @@ fun Container.transactionsList(
           verticalAlign = VerticalAlign.MIDDLE
           if (transaction.memo.orEmpty().isNotEmpty()) {
             link("", "#") {
-              icon("fas fa-note-sticky fa")
+              icon = "fas fa-note-sticky fa"
               setAttribute("aria-label", "view memo")
               enableTooltip(TooltipOptions(transaction.memo))
             }

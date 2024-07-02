@@ -101,7 +101,9 @@ class App : Application() {
                   }
 
                   is DataState.Loading -> {
-                    icon("fas fa-spinner fa-xl fa-spin")
+                    p {
+                      icon("fas fa-spinner fa-xl fa-spin")
+                    }
                     h4("loading transactions…")
                   }
 
