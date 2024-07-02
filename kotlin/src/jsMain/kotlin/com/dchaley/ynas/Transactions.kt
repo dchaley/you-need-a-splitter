@@ -103,11 +103,19 @@ fun Container.transactionsList(
               setAttribute("aria-label", "split")
             }
             if (transaction.approved) {
-              button("", "fas fa-thumbs-down fa-lg", style = ButtonStyle.OUTLINESECONDARY) {
+              button("", style = ButtonStyle.OUTLINESECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  icon("fas fa-thumbs-down fa-lg")
+                }
                 setAttribute("aria-label", "unapprove")
               }.onClick { onUnapprove?.invoke(transaction) }
             } else {
-              button("", "fas fa-thumbs-up fa-lg", style = ButtonStyle.SECONDARY) {
+              button("", style = ButtonStyle.SECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  icon("fas fa-thumbs-up fa-lg")
+                }
                 setAttribute("aria-label", "approve")
               }.onClick { onApprove?.invoke(transaction) }
             }
