@@ -58,6 +58,22 @@ class App : Application() {
       dataModel.updateTransaction(transactionDetail, copied)
     }
 
+    fun onUnapprove(transactionDetail: TransactionDetail) {
+      if (dataModel.transactionsStore !is DataState.Loaded<*>) {
+        console.log("onUnapprove called when transactions not loaded")
+        return
+      }
+      val copied = structuredClone(transactionDetail)
+      copied.payee_name += " (unapproved)"
+
+      // TODO: implement transaction unapproval.
+      // Issue the call to ynab budget.
+      // When it comes back successfully, insert it into the data model.
+      // In the meantime, give it a spinny!
+
+      dataModel.updateTransaction(transactionDetail, copied)
+    }
+
     fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {
       dataModel.selectedBudget = budget
       dataModel.transactionsStore = DataState.Loading
@@ -109,7 +125,11 @@ class App : Application() {
                   }
 
                   is DataState.Loaded -> {
-                    transactionsList(dataModel.displayedTransactions, onApprove = ::onApprove)
+                    transactionsList(
+                      dataModel.displayedTransactions,
+                      onApprove = ::onApprove,
+                      onUnapprove = ::onUnapprove,
+                    )
                   }
                 }
               }
