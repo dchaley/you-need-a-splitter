@@ -2,10 +2,7 @@ package com.dchaley.ynas
 
 import com.dchaley.ynas.util.DataState
 import io.kvision.core.Container
-import io.kvision.html.button
-import io.kvision.html.div
-import io.kvision.html.icon
-import io.kvision.html.label
+import io.kvision.html.*
 import io.kvision.panel.hPanel
 import io.kvision.state.ObservableList
 import io.kvision.state.bindEach
@@ -18,7 +15,7 @@ fun Container.budgetSelector(
   when (budgetSummaries) {
     is DataState.Unloaded, DataState.Loading -> {
       hPanel(spacing = 5) {
-        div {
+        p {
           icon("fas fa-spinner fa-spin")
         }
         div("Loading budgets…")
