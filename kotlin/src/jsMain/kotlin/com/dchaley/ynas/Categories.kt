@@ -2,7 +2,6 @@ package com.dchaley.ynas
 
 import io.kvision.core.Container
 import io.kvision.core.VerticalAlign
-import io.kvision.core.WhiteSpace
 import io.kvision.state.ObservableList
 import io.kvision.state.bindEach
 import io.kvision.table.*
@@ -19,12 +18,10 @@ fun Container.categoriesTable(
       row {
         cell {
           verticalAlign = VerticalAlign.MIDDLE
-          whiteSpace = WhiteSpace.NOWRAP
           content = category.id
         }
         cell {
           verticalAlign = VerticalAlign.MIDDLE
-          whiteSpace = WhiteSpace.NOWRAP
           content = "${category.category_group_name} > ${category.name}"
         }
       }
