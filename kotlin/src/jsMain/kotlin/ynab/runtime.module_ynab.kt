@@ -5,6 +5,7 @@
   "CONFLICTING_OVERLOADS"
 )
 @file:JsModule("ynab")
+@file:JsNonModule
 
 package ynab
 
