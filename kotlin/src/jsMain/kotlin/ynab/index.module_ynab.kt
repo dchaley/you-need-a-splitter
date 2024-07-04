@@ -11,7 +11,7 @@ package ynab
 
 external class api(accessToken: String, endpointUrl: String = definedExternally) {
   // var user: UserApi = definedExternally
-  var budgets: BudgetsApi
+  var budgets: BudgetsApi = definedExternally
 
   // var accounts: AccountsApi = definedExternally
   // var categories: CategoriesApi = definedExternally

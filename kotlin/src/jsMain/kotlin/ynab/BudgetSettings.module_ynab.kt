@@ -5,17 +5,10 @@
   "CONFLICTING_OVERLOADS"
 )
 @file:JsModule("ynab")
-@file:JsNonModule
 
 package ynab
 
-external class BudgetSummary {
-  var id: String
-  var name: String
-  var last_modified_on: String?
-  var first_month: String?
-  var last_month: String?
+external interface BudgetSettings {
   var date_format: DateFormat?
   var currency_format: CurrencyFormat?
-  var accounts: Array<Account>?
 }
