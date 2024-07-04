@@ -8,7 +8,7 @@
 
 package ynab
 
-external interface `T$0` {
+external interface DebtData {
   @nativeGetter
   operator fun get(key: String): Number?
 
@@ -41,13 +41,13 @@ external interface Account {
   var debt_original_balance: Number?
     get() = definedExternally
     set(value) = definedExternally
-  var debt_interest_rates: `T$0`?
+  var debt_interest_rates: DebtData?
     get() = definedExternally
     set(value) = definedExternally
-  var debt_minimum_payments: `T$0`?
+  var debt_minimum_payments: DebtData?
     get() = definedExternally
     set(value) = definedExternally
-  var debt_escrow_amounts: `T$0`?
+  var debt_escrow_amounts: DebtData?
     get() = definedExternally
     set(value) = definedExternally
   var deleted: Boolean
