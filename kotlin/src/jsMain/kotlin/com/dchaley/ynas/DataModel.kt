@@ -7,6 +7,7 @@ import io.kvision.state.ObservableListWrapper
 import io.kvision.state.ObservableValue
 import io.kvision.state.observableListOf
 import ynab.BudgetSummary
+import ynab.Category
 import ynab.TransactionDetail
 
 class DataModel {
@@ -16,6 +17,8 @@ class DataModel {
     ObservableValue<DataState<MutableMap<String, TransactionDetail>>>(DataState.Unloaded)
   private val displayedTransactionsObservable =
     ObservableValue(observableListOf<TransactionDetail>())
+  private val categoriesStoreObservable = ObservableValue<DataState<MutableMap<String, Category>>>(DataState.Unloaded)
+  private val displayedCategoriesObservable = ObservableValue(observableListOf<Category>())
 
   var budgets: DataState<ObservableList<BudgetSummary>>
     get() = budgetsObservable.value
@@ -27,6 +30,19 @@ class DataModel {
     get() = selectedBudgetObservable.value
     set(value) {
       selectedBudgetObservable.value = value
+    }
+
+  var categoriesStore: DataState<MutableMap<String, Category>>
+    get() = categoriesStoreObservable.value
+    set(value) {
+      categoriesStoreObservable.value = value
+      updateDisplayedCategories()
+    }
+
+  var displayedCategories: ObservableList<Category>
+    get() = displayedCategoriesObservable.value
+    set(value) {
+      displayedCategoriesObservable.value = value
     }
 
   var transactionsStore: DataState<MutableMap<String, TransactionDetail>>
@@ -41,6 +57,24 @@ class DataModel {
     set(value) {
       displayedTransactionsObservable.value = value
     }
+
+  fun updateDisplayedCategories() {
+    when (categoriesStore) {
+      is DataState.Unloaded -> {
+        displayedCategories = observableListOf()
+      }
+
+      is DataState.Loading -> {
+        displayedCategories = observableListOf()
+      }
+
+      is DataState.Loaded -> {
+        val categories = (categoriesStore as DataState.Loaded<MutableMap<String, Category>>).data.values
+        val sorted = categories.sortedBy { it.name }
+        (displayedCategories as ObservableListWrapper).replaceAll(sorted)
+      }
+    }
+  }
 
   fun updateDisplayedTxns() {
     when (transactionsStore) {
@@ -79,5 +113,9 @@ class DataModel {
 
   fun observeTransactionsStore(): ObservableValue<DataState<MutableMap<String, TransactionDetail>>> {
     return transactionsStoreObservable
+  }
+
+  fun observeCategoriesStore(): ObservableValue<DataState<MutableMap<String, Category>>> {
+    return categoriesStoreObservable
   }
 }

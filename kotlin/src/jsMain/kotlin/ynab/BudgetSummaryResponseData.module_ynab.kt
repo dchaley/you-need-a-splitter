@@ -1,8 +1,13 @@
-@file:Suppress("INTERFACE_WITH_SUPERCLASS", "OVERRIDING_FINAL_MEMBER", "RETURN_TYPE_MISMATCH_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
+@file:Suppress(
+  "INTERFACE_WITH_SUPERCLASS",
+  "OVERRIDING_FINAL_MEMBER",
+  "RETURN_TYPE_MISMATCH_ON_OVERRIDE",
+  "CONFLICTING_OVERLOADS"
+)
 
 package ynab
 
 external interface BudgetSummaryResponseData {
-    var budgets: Array<BudgetSummary>
-    var default_budget: BudgetSummary?
+  var budgets: Array<BudgetSummary>
+  var default_budget: BudgetSummary?
 }

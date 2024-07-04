@@ -5,10 +5,13 @@
   "CONFLICTING_OVERLOADS"
 )
 @file:JsModule("ynab")
-@file:JsNonModule
 
 package ynab
 
-external interface PatchTransactionsWrapper {
-  var transactions: Array<SaveTransactionWithId>
+external interface PayeeLocation {
+  var id: String
+  var payee_id: String
+  var latitude: String
+  var longitude: String
+  var deleted: Boolean
 }

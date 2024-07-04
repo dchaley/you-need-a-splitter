@@ -79,11 +79,20 @@ class App : Application() {
 
     fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {
       dataModel.selectedBudget = budget
+
+      // Load the transactions for the selected budget.
       dataModel.transactionsStore = DataState.Loading
       val txnType = if (onlyUnapproved) "unapproved" else ""
       ynab.transactions.getTransactions(budget.id, type = txnType).then { response ->
         val pairs = response.data.transactions.map { it.id to it }.toTypedArray()
         dataModel.transactionsStore = DataState.Loaded(mutableMapOf(*pairs))
+      }
+
+      // Load the categories for the selected budget.
+      dataModel.categoriesStore = DataState.Loading
+      ynab.categories.getCategories(budget.id).then { response ->
+        val pairs = response.data.category_groups.flatMap { it.categories.toList() }.map { it.id to it }.toTypedArray()
+        dataModel.categoriesStore = DataState.Loaded(mutableMapOf(*pairs))
       }
     }
 
@@ -133,6 +142,32 @@ class App : Application() {
                       onApprove = ::onApprove,
                       onUnapprove = ::onUnapprove,
                     )
+                  }
+                }
+              }
+            }
+          }
+
+          // This part of the UI shows the categories for the selected budget.
+          div().bind(dataModel.observeCategoriesStore()) { state ->
+            borderedContainer {
+              padding = 2.em
+              vPanel(alignItems = AlignItems.CENTER, useWrappers = true) {
+                padding = 2.em
+                when (state) {
+                  is DataState.Unloaded -> {
+                    h4("no categories loaded!")
+                  }
+
+                  is DataState.Loading -> {
+                    p {
+                      icon("fas fa-spinner fa-xl fa-spin")
+                    }
+                    h4("loading categories…")
+                  }
+
+                  is DataState.Loaded -> {
+                    categoriesTable(dataModel.displayedCategories)
                   }
                 }
               }

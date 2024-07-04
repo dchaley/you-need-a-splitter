@@ -5,20 +5,24 @@
   "CONFLICTING_OVERLOADS"
 )
 @file:JsModule("ynab")
-@file:JsNonModule
 
 package ynab
 
-external interface SubTransaction {
+external interface ScheduledSubTransaction {
   var id: String
-  var transaction_id: String
+  var scheduled_transaction_id: String
   var amount: Number
   var memo: String?
+    get() = definedExternally
+    set(value) = definedExternally
   var payee_id: String?
-  var payee_name: String?
+    get() = definedExternally
+    set(value) = definedExternally
   var category_id: String?
-  var category_name: String?
+    get() = definedExternally
+    set(value) = definedExternally
   var transfer_account_id: String?
-  var transfer_transaction_id: String?
+    get() = definedExternally
+    set(value) = definedExternally
   var deleted: Boolean
 }

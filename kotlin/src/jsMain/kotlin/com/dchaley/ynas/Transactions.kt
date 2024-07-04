@@ -100,7 +100,7 @@ fun Container.transactionsList(
           verticalAlign = VerticalAlign.MIDDLE
           hPanel(spacing = 2, justify = JustifyContent.SPACEBETWEEN) {
             whiteSpace = WhiteSpace.NOWRAP
-            button("", "fas fa-pen-fancy fa-lg", style = ButtonStyle.SECONDARY) {
+            button("", "fas fa-pencil fa-lg", style = ButtonStyle.SECONDARY) {
               setAttribute("aria-label", "recategorize")
             }
             button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {

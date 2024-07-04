@@ -5,10 +5,10 @@
   "CONFLICTING_OVERLOADS"
 )
 @file:JsModule("ynab")
-@file:JsNonModule
 
 package ynab
 
-external interface PatchTransactionsWrapper {
-  var transactions: Array<SaveTransactionWithId>
+external interface BudgetSettings {
+  var date_format: DateFormat?
+  var currency_format: CurrencyFormat?
 }
