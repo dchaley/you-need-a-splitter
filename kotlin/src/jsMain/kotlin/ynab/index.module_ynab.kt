@@ -14,7 +14,8 @@ external class api(accessToken: String, endpointUrl: String = definedExternally)
   var budgets: BudgetsApi = definedExternally
 
   // var accounts: AccountsApi = definedExternally
-  // var categories: CategoriesApi = definedExternally
+  var categories: CategoriesApi = definedExternally
+
   // var months: MonthsApi = definedExternally
   // var payees: PayeesApi = definedExternally
   // var payeeLocations: PayeeLocationsApi = definedExternally
