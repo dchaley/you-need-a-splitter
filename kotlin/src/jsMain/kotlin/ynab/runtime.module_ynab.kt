@@ -8,6 +8,7 @@
 
 package ynab
 
+import js.collections.JsSet
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import kotlin.js.Promise
@@ -93,9 +94,8 @@ external interface HTTPQuery {
   @nativeSetter
   operator fun set(key: String, value: Array<dynamic /* String? | Number? | Boolean? */>?)
 
-  // FIXME(#17): This needs to be TS set not Kotlin set
   @nativeSetter
-  operator fun set(key: String, value: Set<dynamic /* String? | Number? | Boolean? */>?)
+  operator fun set(key: String, value: JsSet<dynamic /* String? | Number? | Boolean? */>?)
 
   @nativeSetter
   operator fun set(key: String, value: HTTPQuery?)
