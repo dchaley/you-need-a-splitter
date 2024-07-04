@@ -43,7 +43,7 @@ fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
   return x
 }
 
-fun Container.transactionsList(
+fun Container.transactionsTable(
   transactions: ObservableList<TransactionDetail>,
   onApprove: ((TransactionDetail) -> Unit)? = null,
   onUnapprove: ((TransactionDetail) -> Unit)? = null,
