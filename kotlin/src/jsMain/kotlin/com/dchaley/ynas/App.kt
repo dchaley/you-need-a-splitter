@@ -137,7 +137,7 @@ class App : Application() {
                   }
 
                   is DataState.Loaded -> {
-                    transactionsList(
+                    transactionsTable(
                       dataModel.displayedTransactions,
                       onApprove = ::onApprove,
                       onUnapprove = ::onUnapprove,
