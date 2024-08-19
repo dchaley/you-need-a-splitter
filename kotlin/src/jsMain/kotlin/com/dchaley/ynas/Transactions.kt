@@ -103,8 +103,24 @@ fun Container.transactionsTable(
             button("", "fas fa-pencil fa-lg", style = ButtonStyle.SECONDARY) {
               setAttribute("aria-label", "recategorize")
             }
-            button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
-              setAttribute("aria-label", "split")
+            if (transaction.category_name != "Split") {
+              button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
+                setAttribute("aria-label", "split")
+              }
+            } else {
+              button("", style = ButtonStyle.SECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  span(className = "fa-layers fa-fw") {
+                    i(className = "fas fa-code-branch") {
+                      setAttribute("data-fa-transform", "shrink-2")
+                    }
+                    icon("fas fa-slash")
+                  }
+                }
+                setAttribute("aria-label", "unsplit")
+              }
+
             }
             if (transaction.approved) {
               button("", style = ButtonStyle.OUTLINESECONDARY) {
