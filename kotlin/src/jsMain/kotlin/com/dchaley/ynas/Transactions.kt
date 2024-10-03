@@ -47,6 +47,7 @@ fun Container.transactionsTable(
   transactions: ObservableList<TransactionDetail>,
   onApprove: ((TransactionDetail) -> Unit)? = null,
   onUnapprove: ((TransactionDetail) -> Unit)? = null,
+  onUnsplit: ((TransactionDetail) -> Unit)? = null,
 ) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
@@ -119,7 +120,7 @@ fun Container.transactionsTable(
                   }
                 }
                 setAttribute("aria-label", "unsplit")
-              }
+              }.onClick { onUnsplit?.invoke(transaction) }
 
             }
             if (transaction.approved) {

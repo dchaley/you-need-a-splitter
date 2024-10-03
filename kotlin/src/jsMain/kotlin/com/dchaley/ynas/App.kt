@@ -12,6 +12,8 @@ import io.kvision.utils.auto
 import io.kvision.utils.em
 import io.kvision.utils.perc
 import io.kvision.utils.px
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
@@ -75,6 +77,35 @@ class App : Application() {
       }.catch { error ->
         console.error("Error updating transaction: $error")
       }
+    }
+
+    fun onUnsplit(transactionDetail: TransactionDetail) {
+      if (dataModel.transactionsStore !is DataState.Loaded<*>) {
+        console.log("onUnsplit called when transactions not loaded")
+        return
+      }
+      if (dataModel.categoriesStore !is DataState.Loaded<*>) {
+        console.log("onUnsplit called when categories not loaded")
+        return
+      }
+      val categories = (dataModel.categoriesStore as DataState.Loaded).data
+
+      GlobalScope.launch {
+        val result = unsplitModal(transactionDetail, categories).getResult()
+        console.log("Result: $result; ${dataModel.displayedCategories.find { it.id == result }?.name}")
+      }
+
+      /*val req = js("{transaction: {}}")
+      req.transaction.category = false
+      req.transaction.subtransactions = js("[]")
+
+      ynab.transactions.updateTransaction(
+        dataModel.selectedBudget!!.id, transactionDetail.id, req
+      ).then { response ->
+        dataModel.updateTransaction(transactionDetail, response.data.transaction)
+      }.catch { error ->
+        console.error("Error updating transaction: $error")
+      }*/
     }
 
     fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {
@@ -141,6 +172,7 @@ class App : Application() {
                       dataModel.displayedTransactions,
                       onApprove = ::onApprove,
                       onUnapprove = ::onUnapprove,
+                      onUnsplit = ::onUnsplit,
                     )
                   }
                 }
