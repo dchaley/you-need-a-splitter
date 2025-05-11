@@ -47,7 +47,7 @@ fun Container.transactionsTable(
   transactions: ObservableList<TransactionDetail>,
   onApprove: ((TransactionDetail) -> Unit)? = null,
   onUnapprove: ((TransactionDetail) -> Unit)? = null,
-  onUnsplit: ((TransactionDetail) -> Unit)? = null,
+  onSplit: ((TransactionDetail) -> Unit)? = null,
 ) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
@@ -107,9 +107,10 @@ fun Container.transactionsTable(
             if (transaction.category_name != "Split") {
               button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
                 setAttribute("aria-label", "split")
-              }
+              }.onClick { onSplit?.invoke(transaction) }
             } else {
               button("", style = ButtonStyle.SECONDARY) {
+                setAttribute("hidden", "true")
                 div {
                   useSnabbdomDistinctKey()
                   span(className = "fa-layers fa-fw") {
@@ -119,8 +120,7 @@ fun Container.transactionsTable(
                     icon("fas fa-slash")
                   }
                 }
-                setAttribute("aria-label", "unsplit")
-              }.onClick { onUnsplit?.invoke(transaction) }
+              }
 
             }
             if (transaction.approved) {

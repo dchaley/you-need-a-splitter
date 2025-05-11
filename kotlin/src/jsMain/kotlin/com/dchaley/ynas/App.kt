@@ -79,33 +79,28 @@ class App : Application() {
       }
     }
 
-    fun onUnsplit(transactionDetail: TransactionDetail) {
+    fun onSplit(transactionDetail: TransactionDetail) {
       if (dataModel.transactionsStore !is DataState.Loaded<*>) {
-        console.log("onUnsplit called when transactions not loaded")
+        console.log("onSplit called when transactions not loaded")
         return
       }
       if (dataModel.categoriesStore !is DataState.Loaded<*>) {
-        console.log("onUnsplit called when categories not loaded")
+        console.log("onSplit called when categories not loaded")
         return
       }
       val categories = (dataModel.categoriesStore as DataState.Loaded).data
 
       GlobalScope.launch {
-        val result = unsplitModal(transactionDetail, categories).getResult()
-        console.log("Result: $result; ${dataModel.displayedCategories.find { it.id == result }?.name}")
+        val splitResult = splitModal(transactionDetail, categories).getResult()
+
+        if (splitResult == null) {
+          return@launch
+        } else {
+          console.log("Split: $splitResult")
+          console.log("Can't finish split")
+          // finishSplit(transactionDetail, selectedCategoryId)
+        }
       }
-
-      /*val req = js("{transaction: {}}")
-      req.transaction.category = false
-      req.transaction.subtransactions = js("[]")
-
-      ynab.transactions.updateTransaction(
-        dataModel.selectedBudget!!.id, transactionDetail.id, req
-      ).then { response ->
-        dataModel.updateTransaction(transactionDetail, response.data.transaction)
-      }.catch { error ->
-        console.error("Error updating transaction: $error")
-      }*/
     }
 
     fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {
@@ -172,7 +167,7 @@ class App : Application() {
                       dataModel.displayedTransactions,
                       onApprove = ::onApprove,
                       onUnapprove = ::onUnapprove,
-                      onUnsplit = ::onUnsplit,
+                      onSplit = ::onSplit,
                     )
                   }
                 }

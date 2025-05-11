@@ -15,6 +15,7 @@ fun Container.borderedContainer(radius: CssSize = 6.px, size: CssSize = 3.px, co
     div {
       borderRadius = radius
       background = Background(Color("#ffffff"))
+      padding = 1.px
 
       content()
     }
