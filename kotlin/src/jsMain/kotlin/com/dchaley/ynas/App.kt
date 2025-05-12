@@ -79,6 +79,45 @@ class App : Application() {
       }
     }
 
+    fun finishSplit(transactionDetail: TransactionDetail, splitResult: SplitResult) {
+      if (dataModel.transactionsStore !is DataState.Loaded<*>) {
+        console.log("finishSplit called when transactions not loaded")
+        return
+      }
+
+      val req = js("{transaction: {}}")
+      // Change the category to "Split"
+      req.transaction.category_name = "Split"
+
+      // Calculate the remaining amount
+      val remainingAmount = transactionDetail.amount.toInt() - splitResult.splitAmount
+
+      // Create the subtransactions array with the original transaction and the new split
+      val subtransaction1 = js("{}")
+      subtransaction1.amount = remainingAmount
+      subtransaction1.category_id = transactionDetail.category_id
+      subtransaction1.deleted = false
+
+      val subtransaction2 = js("{}")
+      subtransaction2.amount = splitResult.splitAmount
+      subtransaction2.category_id = splitResult.categoryId
+      subtransaction1.deleted = false
+
+      val subtransactions = js("[]")
+      subtransactions.push(subtransaction1)
+      subtransactions.push(subtransaction2)
+
+      req.transaction.subtransactions = subtransactions
+
+      ynab.transactions.updateTransaction(
+        dataModel.selectedBudget!!.id, transactionDetail.id, req
+      ).then { response ->
+        dataModel.updateTransaction(transactionDetail, response.data.transaction)
+      }.catch { error ->
+        console.error("Error updating transaction: $error")
+      }
+    }
+
     fun onSplit(transactionDetail: TransactionDetail) {
       if (dataModel.transactionsStore !is DataState.Loaded<*>) {
         console.log("onSplit called when transactions not loaded")
@@ -96,9 +135,7 @@ class App : Application() {
         if (splitResult == null) {
           return@launch
         } else {
-          console.log("Split: $splitResult")
-          console.log("Can't finish split")
-          // finishSplit(transactionDetail, selectedCategoryId)
+          finishSplit(transactionDetail, splitResult)
         }
       }
     }

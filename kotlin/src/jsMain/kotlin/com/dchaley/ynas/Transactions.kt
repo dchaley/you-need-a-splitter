@@ -63,9 +63,9 @@ fun Container.transactionsTable(
         cell(transaction.payee_name) {
           verticalAlign = VerticalAlign.MIDDLE
         }
-        if (transaction.category_name == "Split") {
-          cell {
-            verticalAlign = VerticalAlign.MIDDLE
+        cell {
+          verticalAlign = VerticalAlign.MIDDLE
+          if (transaction.category_name == "Split") {
             small {
               gridPanel(columnGap = 3) {
                 transaction.subtransactions.forEachIndexed { index, subTransaction ->
@@ -76,10 +76,6 @@ fun Container.transactionsTable(
                 }
               }
             }
-          }
-        } else {
-          cell(transaction.category_name) {
-            verticalAlign = VerticalAlign.MIDDLE
           }
         }
         cell {
@@ -105,7 +101,11 @@ fun Container.transactionsTable(
               setAttribute("aria-label", "recategorize")
             }
             if (transaction.category_name != "Split") {
-              button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
+              button("", style = ButtonStyle.SECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  icon("fas fa-code-branch fa-lg")
+                }
                 setAttribute("aria-label", "split")
               }.onClick { onSplit?.invoke(transaction) }
             } else {
