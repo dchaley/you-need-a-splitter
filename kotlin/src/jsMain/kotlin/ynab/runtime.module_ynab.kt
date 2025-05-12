@@ -10,6 +10,7 @@
 package ynab
 
 import js.collections.JsSet
+import js.core.Object
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import kotlin.js.Promise
@@ -81,7 +82,7 @@ external interface HTTPHeaders {
 
 external interface HTTPQuery {
   @nativeGetter
-  operator fun get(key: String): dynamic /* String? | Number? | Boolean? | Array<dynamic /* String? | Number? | Boolean? */>? | Set<dynamic /* String? | Number? | Boolean? */>? | HTTPQuery? */
+  operator fun get(key: String): Object? /* String? | Number? | Boolean? | Array<dynamic /* String? | Number? | Boolean? */>? | Set<dynamic /* String? | Number? | Boolean? */>? | HTTPQuery? */
 
   @nativeSetter
   operator fun set(key: String, value: String?)
