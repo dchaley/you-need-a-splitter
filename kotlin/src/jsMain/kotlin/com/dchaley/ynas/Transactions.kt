@@ -68,7 +68,7 @@ fun Container.transactionsTable(
           if (transaction.category_name == "Split") {
             small {
               gridPanel(columnGap = 3) {
-                transaction.subtransactions.forEachIndexed { index, subTransaction ->
+                transaction.subtransactions.filter { !it.deleted }.forEachIndexed { index, subTransaction ->
                   val row = index + 1
                   add(Div(subTransaction.category_name), 1, row)
                   add(Div(subTransaction.amount.toUsd()), 2, row)
