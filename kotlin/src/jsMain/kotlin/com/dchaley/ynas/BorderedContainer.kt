@@ -3,17 +3,19 @@ package com.dchaley.ynas
 import io.kvision.core.Background
 import io.kvision.core.Color
 import io.kvision.core.Container
+import io.kvision.core.CssSize
 import io.kvision.html.div
 import io.kvision.utils.px
 
-fun Container.borderedContainer(content: Container.() -> Unit) {
+fun Container.borderedContainer(radius: CssSize = 6.px, size: CssSize = 3.px, content: Container.() -> Unit) {
   div {
-    borderRadius = 6.px
+    borderRadius = radius
     background = Background(Color("#000000"))
-    padding = 3.px
+    padding = size
     div {
-      borderRadius = 6.px
+      borderRadius = radius
       background = Background(Color("#ffffff"))
+      padding = 1.px
 
       content()
     }

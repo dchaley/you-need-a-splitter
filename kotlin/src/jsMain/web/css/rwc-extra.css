@@ -1,0 +1,11 @@
+
+.btn-close::before {
+    display: inline-block;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    content: '🅇';
+}
+
+.btn-close {
+    border: 0;
+}

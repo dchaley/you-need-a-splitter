@@ -27,3 +27,7 @@ fun Container.categoriesTable(
       }
     }
 }
+
+fun Category.renderCategory(): String {
+  return "$category_group_name > $name"
+}

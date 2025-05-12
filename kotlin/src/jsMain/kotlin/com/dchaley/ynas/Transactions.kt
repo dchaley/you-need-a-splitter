@@ -47,6 +47,7 @@ fun Container.transactionsTable(
   transactions: ObservableList<TransactionDetail>,
   onApprove: ((TransactionDetail) -> Unit)? = null,
   onUnapprove: ((TransactionDetail) -> Unit)? = null,
+  onSplit: ((TransactionDetail) -> Unit)? = null,
 ) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
@@ -62,12 +63,12 @@ fun Container.transactionsTable(
         cell(transaction.payee_name) {
           verticalAlign = VerticalAlign.MIDDLE
         }
-        if (transaction.category_name == "Split") {
-          cell {
-            verticalAlign = VerticalAlign.MIDDLE
+        cell {
+          verticalAlign = VerticalAlign.MIDDLE
+          if (transaction.category_name == "Split") {
             small {
               gridPanel(columnGap = 3) {
-                transaction.subtransactions.forEachIndexed { index, subTransaction ->
+                transaction.subtransactions.filter { !it.deleted }.forEachIndexed { index, subTransaction ->
                   val row = index + 1
                   add(Div(subTransaction.category_name), 1, row)
                   add(Div(subTransaction.amount.toUsd()), 2, row)
@@ -75,10 +76,6 @@ fun Container.transactionsTable(
                 }
               }
             }
-          }
-        } else {
-          cell(transaction.category_name) {
-            verticalAlign = VerticalAlign.MIDDLE
           }
         }
         cell {
@@ -103,8 +100,28 @@ fun Container.transactionsTable(
             button("", "fas fa-pencil fa-lg", style = ButtonStyle.SECONDARY) {
               setAttribute("aria-label", "recategorize")
             }
-            button("", "fas fa-code-branch fa-lg", style = ButtonStyle.SECONDARY) {
-              setAttribute("aria-label", "split")
+            if (transaction.category_name != "Split") {
+              button("", style = ButtonStyle.SECONDARY) {
+                div {
+                  useSnabbdomDistinctKey()
+                  icon("fas fa-code-branch fa-lg")
+                }
+                setAttribute("aria-label", "split")
+              }.onClick { onSplit?.invoke(transaction) }
+            } else {
+              button("", style = ButtonStyle.SECONDARY) {
+                setAttribute("hidden", "true")
+                div {
+                  useSnabbdomDistinctKey()
+                  span(className = "fa-layers fa-fw") {
+                    i(className = "fas fa-code-branch") {
+                      setAttribute("data-fa-transform", "shrink-2")
+                    }
+                    icon("fas fa-slash")
+                  }
+                }
+              }
+
             }
             if (transaction.approved) {
               button("", style = ButtonStyle.OUTLINESECONDARY) {
