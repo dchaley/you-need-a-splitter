@@ -8,21 +8,27 @@ import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
 import io.kvision.state.observableListOf
-import io.kvision.utils.auto
-import io.kvision.utils.em
-import io.kvision.utils.perc
-import io.kvision.utils.px
+import io.kvision.utils.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import ynab.BudgetSummary
 import ynab.TransactionDetail
 import ynab.api
 
+@JsModule("@fortawesome/fontawesome-free/js/brands.js")
+external val brands: dynamic
+
+@JsModule("@fortawesome/fontawesome-free/js/solid.js")
+external val solid: dynamic
+
+@JsModule("@fortawesome/fontawesome-free/js/fontawesome.js")
+external val fontawesome: dynamic
+
 class App : Application() {
   init {
-    require("@fortawesome/fontawesome-free/js/brands.js")
-    require("@fortawesome/fontawesome-free/js/solid.js")
-    require("@fortawesome/fontawesome-free/js/fontawesome.js")
+    useModule(brands)
+    useModule(solid)
+    useModule(fontawesome)
   }
 
 
@@ -246,7 +252,7 @@ class App : Application() {
 fun main() {
   startApplication(
     ::App,
-    module.hot,
+    js("import.meta.webpackHot").unsafeCast<Hot?>(),
     BootstrapModule,
     CoreModule
   )
