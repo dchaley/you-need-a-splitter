@@ -28,9 +28,10 @@ data class SplitResult(
 fun splitModal(
   transaction: TransactionDetail,
   categories: Map<String, Category>,
-  defaultCategoryId: String? = null
+  defaultCategoryId: String? = null,
+  initialSplitPercent: String? = null,
 ): Dialog<SplitResult?> {
-  val splitCategoryId = ObservableValue<String?>(defaultCategoryId)
+  val splitCategoryId = ObservableValue(defaultCategoryId)
 
   val txnAmount = transaction.amount.toInt()
   val category = categories[transaction.category_id]
@@ -115,6 +116,15 @@ fun splitModal(
     val newSplitAmount = txnAmount - newRemainingAmount
     setSplitAmount(newSplitAmount)
     setSplitPercent(newSplitAmount)
+  }
+
+  // Handle initialSplitPercent if provided and valid
+  if (!initialSplitPercent.isNullOrEmpty()) {
+    val percent = initialSplitPercent.toDoubleOrNull()
+    if (percent != null) {
+      splitPercentStr.value = initialSplitPercent
+      updateFromSplitPercent(initialSplitPercent)
+    }
   }
 
   return Dialog(

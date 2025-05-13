@@ -10,6 +10,7 @@ import kotlinx.serialization.decodeFromString
  */
 object CookieUtil {
   private const val DEFAULT_CATEGORY_COOKIE_NAME = "defaultCategoryId"
+  private const val DEFAULT_SPLIT_PERCENTAGE_COOKIE_NAME = "defaultSplitPercentage"
   private const val DEFAULT_PATH = "/"
 
   /**
@@ -85,5 +86,53 @@ object CookieUtil {
    */
   fun getDefaultCategoryIdForBudget(budgetId: String): String? {
     return getDefaultCategoryId()[budgetId]
+  }
+
+  /**
+   * Sets the default split percentage map in a cookie with a 1-year expiration date.
+   * @param defaultSplitPercentageMap The map of budget ID to default split percentage
+   */
+  fun setDefaultSplitPercentage(defaultSplitPercentageMap: Map<String, String>) {
+    // Calculate expiration date (1 year from now)
+    val expirationDate = js("new Date()")
+    expirationDate.setFullYear(expirationDate.getFullYear() + 1)
+
+    // Convert map to JSON and encode to Base64
+    val jsonString = Json.encodeToString(defaultSplitPercentageMap)
+    val encodedValue = encodeToBase64(jsonString)
+
+    // Set the cookie with document.cookie
+    val cookieString =
+      "$DEFAULT_SPLIT_PERCENTAGE_COOKIE_NAME=$encodedValue; path=$DEFAULT_PATH; expires=${expirationDate.toUTCString()}"
+    js("document.cookie = cookieString")
+  }
+
+  /**
+   * Gets the default split percentage map from the cookie.
+   * @return The map of budget ID to default split percentage, or empty map if not found
+   */
+  fun getDefaultSplitPercentage(): Map<String, String> {
+    // Get all cookies
+    val cookies = js("document.cookie").toString().split("; ")
+
+    // Find our cookie
+    val cookie = cookies.find { it.startsWith("$DEFAULT_SPLIT_PERCENTAGE_COOKIE_NAME=") }
+
+    // Extract the value
+    val encodedValue = cookie?.substringAfter("=")
+
+    // If no cookie found, return empty map
+    if (encodedValue == null) {
+      return emptyMap()
+    }
+
+    return try {
+      // Decode from Base64 and parse JSON
+      val jsonString = decodeFromBase64(encodedValue)
+      Json.decodeFromString<Map<String, String>>(jsonString)
+    } catch (e: Exception) {
+      console.error("Error decoding default split percentage map: $e")
+      emptyMap()
+    }
   }
 }
