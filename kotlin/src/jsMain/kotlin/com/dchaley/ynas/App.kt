@@ -3,10 +3,12 @@ package com.dchaley.ynas
 import com.dchaley.ynas.util.DataState
 import io.kvision.*
 import io.kvision.core.AlignItems
+import io.kvision.form.select.select
 import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
+import io.kvision.state.bindTo
 import io.kvision.state.observableListOf
 import io.kvision.utils.*
 import kotlinx.coroutines.GlobalScope
@@ -136,7 +138,11 @@ class App : Application() {
       val categories = (dataModel.categoriesStore as DataState.Loaded).data
 
       GlobalScope.launch {
-        val splitResult = splitModal(transactionDetail, categories).getResult()
+        val splitResult = splitModal(
+          transactionDetail,
+          categories,
+          dataModel.defaultCategoryId
+        ).getResult()
 
         if (splitResult == null) {
           return@launch
@@ -162,6 +168,8 @@ class App : Application() {
       ynab.categories.getCategories(budget.id).then { response ->
         val pairs = response.data.category_groups.flatMap { it.categories.toList() }.map { it.id to it }.toTypedArray()
         dataModel.categoriesStore = DataState.Loaded(mutableMapOf(*pairs))
+        // Load default category from cookie after categories are loaded
+        dataModel.loadDefaultCategoryFromCookie()
       }
     }
 
@@ -237,6 +245,17 @@ class App : Application() {
                   }
 
                   is DataState.Loaded -> {
+                    // Add dropdown for default category selection
+                    div {
+                      h4("Default Split Category")
+                      p("Select a default category for transaction splits:")
+                      select(
+                        options = listOf("" to "-- Select a default category --") +
+                                dataModel.displayedCategories.map { it.id to it.renderCategory() },
+                        label = "Default Category"
+                      ).bindTo(dataModel.observeDefaultCategoryId())
+                    }
+
                     categoriesTable(dataModel.displayedCategories)
                   }
                 }

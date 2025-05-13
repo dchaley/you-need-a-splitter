@@ -28,8 +28,9 @@ data class SplitResult(
 fun splitModal(
   transaction: TransactionDetail,
   categories: Map<String, Category>,
+  defaultCategoryId: String? = null
 ): Dialog<SplitResult?> {
-  val splitCategoryId = ObservableValue<String?>(null)
+  val splitCategoryId = ObservableValue<String?>(defaultCategoryId)
 
   val txnAmount = transaction.amount.toInt()
   val category = categories[transaction.category_id]

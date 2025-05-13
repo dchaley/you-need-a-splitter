@@ -1,5 +1,6 @@
 package com.dchaley.ynas
 
+import com.dchaley.ynas.util.CookieUtil
 import com.dchaley.ynas.util.DataState
 import com.dchaley.ynas.util.replaceAll
 import io.kvision.state.ObservableList
@@ -19,6 +20,7 @@ class DataModel {
     ObservableValue(observableListOf<TransactionDetail>())
   private val categoriesStoreObservable = ObservableValue<DataState<MutableMap<String, Category>>>(DataState.Unloaded)
   private val displayedCategoriesObservable = ObservableValue(observableListOf<Category>())
+  private val defaultCategoryIdObservable = ObservableValue<String?>(null)
 
   var budgets: DataState<ObservableList<BudgetSummary>>
     get() = budgetsObservable.value
@@ -57,6 +59,25 @@ class DataModel {
     set(value) {
       displayedTransactionsObservable.value = value
     }
+
+  var defaultCategoryId: String?
+    get() = defaultCategoryIdObservable.value
+    set(value) {
+      defaultCategoryIdObservable.value = value
+    }
+
+  init {
+    defaultCategoryIdObservable.subscribe {
+      // Save to cookie when value changes
+      if (it != null) {
+        try {
+          CookieUtil.setDefaultCategoryId(it)
+        } catch (e: Exception) {
+          console.error("Error saving default category to cookie: $e")
+        }
+      }
+    }
+  }
 
   fun updateDisplayedCategories() {
     when (categoriesStore) {
@@ -117,5 +138,24 @@ class DataModel {
 
   fun observeCategoriesStore(): ObservableValue<DataState<MutableMap<String, Category>>> {
     return categoriesStoreObservable
+  }
+
+  fun observeDefaultCategoryId(): ObservableValue<String?> {
+    return defaultCategoryIdObservable
+  }
+
+  /**
+   * Loads the default category ID from the cookie.
+   * This should be called after categories are loaded.
+   */
+  fun loadDefaultCategoryFromCookie() {
+    try {
+      val categoryId = CookieUtil.getDefaultCategoryId()
+      if (categoryId != null) {
+        defaultCategoryId = categoryId
+      }
+    } catch (e: Exception) {
+      console.error("Error loading default category from cookie: $e")
+    }
   }
 }
