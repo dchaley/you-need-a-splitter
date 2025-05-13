@@ -20,7 +20,7 @@ class DataModel {
     ObservableValue(observableListOf<TransactionDetail>())
   private val categoriesStoreObservable = ObservableValue<DataState<MutableMap<String, Category>>>(DataState.Unloaded)
   private val displayedCategoriesObservable = ObservableValue(observableListOf<Category>())
-  private val defaultCategoryIdObservable = ObservableValue<String?>(null)
+  private val defaultCategoryMapObservable = ObservableValue<Map<String, String>>(emptyMap())
 
   var budgets: DataState<ObservableList<BudgetSummary>>
     get() = budgetsObservable.value
@@ -60,20 +60,36 @@ class DataModel {
       displayedTransactionsObservable.value = value
     }
 
+  /**
+   * Gets the default category ID for the currently selected budget.
+   * @return The default category ID, or null if not found or no budget selected
+   */
   var defaultCategoryId: String?
-    get() = defaultCategoryIdObservable.value
+    get() {
+      val budgetId = selectedBudget?.id ?: return null
+      return defaultCategoryMapObservable.value[budgetId]
+    }
     set(value) {
-      defaultCategoryIdObservable.value = value
+      val budgetId = selectedBudget?.id ?: ""
+      if (value == "") {
+        // Remove the current budget's entry from the map
+        defaultCategoryMapObservable.value = defaultCategoryMapObservable.value.filter { it.key != budgetId }
+      } else {
+        // Otherwise, update the map with the new value
+        val newMap = defaultCategoryMapObservable.value.toMutableMap()
+        newMap[budgetId] = value ?: ""
+        defaultCategoryMapObservable.value = newMap.toMap()
+      }
     }
 
   init {
-    defaultCategoryIdObservable.subscribe {
+    defaultCategoryMapObservable.subscribe {
       // Save to cookie when value changes
-      if (it != null) {
+      if (it.isNotEmpty()) {
         try {
           CookieUtil.setDefaultCategoryId(it)
         } catch (e: Exception) {
-          console.error("Error saving default category to cookie: $e")
+          console.error("Error saving default category map to cookie: $e")
         }
       }
     }
@@ -141,21 +157,40 @@ class DataModel {
   }
 
   fun observeDefaultCategoryId(): ObservableValue<String?> {
-    return defaultCategoryIdObservable
+    // Create a derived observable that updates when either the map or selected budget changes
+    val derivedObservable = ObservableValue(defaultCategoryId)
+
+    // Update the derived observable when the map changes
+    defaultCategoryMapObservable.subscribe {
+      derivedObservable.value = it[selectedBudget?.id]
+    }
+
+    // Update the derived observable when the selected budget changes
+    selectedBudgetObservable.subscribe {
+      derivedObservable.value = defaultCategoryMapObservable.value[it?.id]
+    }
+
+    derivedObservable.subscribe {
+      if (defaultCategoryId != it) {
+        defaultCategoryId = it
+      }
+    }
+
+    return derivedObservable
   }
 
   /**
-   * Loads the default category ID from the cookie.
+   * Loads the default category map from the cookie.
    * This should be called after categories are loaded.
    */
   fun loadDefaultCategoryFromCookie() {
     try {
-      val categoryId = CookieUtil.getDefaultCategoryId()
-      if (categoryId != null) {
-        defaultCategoryId = categoryId
+      val categoryMap = CookieUtil.getDefaultCategoryId()
+      if (categoryMap.isNotEmpty()) {
+        defaultCategoryMapObservable.value = categoryMap
       }
     } catch (e: Exception) {
-      console.error("Error loading default category from cookie: $e")
+      console.error("Error loading default category map from cookie: $e")
     }
   }
 }
