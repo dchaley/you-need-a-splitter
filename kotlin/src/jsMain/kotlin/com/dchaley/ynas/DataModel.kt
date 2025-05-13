@@ -21,6 +21,7 @@ class DataModel {
   private val categoriesStoreObservable = ObservableValue<DataState<MutableMap<String, Category>>>(DataState.Unloaded)
   private val displayedCategoriesObservable = ObservableValue(observableListOf<Category>())
   private val defaultCategoryMapObservable = ObservableValue<Map<String, String>>(emptyMap())
+  private val defaultSplitPercentageMapObservable = ObservableValue<Map<String, String>>(emptyMap())
 
   var budgets: DataState<ObservableList<BudgetSummary>>
     get() = budgetsObservable.value
@@ -82,6 +83,28 @@ class DataModel {
       }
     }
 
+  /**
+   * Gets the default split percentage for the currently selected budget.
+   * @return The default split percentage string, or null if not found or no budget selected
+   */
+  var defaultSplitPercentage: String?
+    get() {
+      val budgetId = selectedBudget?.id ?: return null
+      return defaultSplitPercentageMapObservable.value[budgetId]
+    }
+    set(value) {
+      val budgetId = selectedBudget?.id ?: ""
+      if (value == "") {
+        // Remove the current budget's entry from the map
+        defaultSplitPercentageMapObservable.value = defaultSplitPercentageMapObservable.value.filter { it.key != budgetId }
+      } else {
+        // Otherwise, update the map with the new value
+        val newMap = defaultSplitPercentageMapObservable.value.toMutableMap()
+        newMap[budgetId] = value ?: ""
+        defaultSplitPercentageMapObservable.value = newMap.toMap()
+      }
+    }
+
   init {
     defaultCategoryMapObservable.subscribe {
       // Save to cookie when value changes
@@ -90,6 +113,17 @@ class DataModel {
           CookieUtil.setDefaultCategoryId(it)
         } catch (e: Exception) {
           console.error("Error saving default category map to cookie: $e")
+        }
+      }
+    }
+
+    defaultSplitPercentageMapObservable.subscribe {
+      // Save to cookie when value changes
+      if (it.isNotEmpty()) {
+        try {
+          CookieUtil.setDefaultSplitPercentage(it)
+        } catch (e: Exception) {
+          console.error("Error saving default split percentage map to cookie: $e")
         }
       }
     }
@@ -192,5 +226,47 @@ class DataModel {
     } catch (e: Exception) {
       console.error("Error loading default category map from cookie: $e")
     }
+  }
+
+  /**
+   * Loads the default split percentage map from the cookie.
+   * This should be called after categories are loaded.
+   */
+  fun loadDefaultSplitPercentageFromCookie() {
+    try {
+      val splitPercentageMap = CookieUtil.getDefaultSplitPercentage()
+      if (splitPercentageMap.isNotEmpty()) {
+        defaultSplitPercentageMapObservable.value = splitPercentageMap
+      }
+    } catch (e: Exception) {
+      console.error("Error loading default split percentage map from cookie: $e")
+    }
+  }
+
+  /**
+   * Observes the default split percentage for the currently selected budget.
+   * @return An observable value that updates when either the map or selected budget changes
+   */
+  fun observeDefaultSplitPercentage(): ObservableValue<String?> {
+    // Create a derived observable that updates when either the map or selected budget changes
+    val derivedObservable = ObservableValue(defaultSplitPercentage)
+
+    // Update the derived observable when the map changes
+    defaultSplitPercentageMapObservable.subscribe {
+      derivedObservable.value = it[selectedBudget?.id]
+    }
+
+    // Update the derived observable when the selected budget changes
+    selectedBudgetObservable.subscribe {
+      derivedObservable.value = defaultSplitPercentageMapObservable.value[it?.id]
+    }
+
+    derivedObservable.subscribe {
+      if (defaultSplitPercentage != it) {
+        defaultSplitPercentage = it
+      }
+    }
+
+    return derivedObservable
   }
 }

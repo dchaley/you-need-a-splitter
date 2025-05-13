@@ -4,6 +4,7 @@ import com.dchaley.ynas.util.DataState
 import io.kvision.*
 import io.kvision.core.AlignItems
 import io.kvision.form.select.select
+import io.kvision.form.text.text
 import io.kvision.html.*
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
@@ -141,7 +142,8 @@ class App : Application() {
         val splitResult = splitModal(
           transactionDetail,
           categories,
-          dataModel.defaultCategoryId
+          dataModel.defaultCategoryId,
+          dataModel.defaultSplitPercentage,
         ).getResult()
 
         if (splitResult == null) {
@@ -168,8 +170,9 @@ class App : Application() {
       ynab.categories.getCategories(budget.id).then { response ->
         val pairs = response.data.category_groups.flatMap { it.categories.toList() }.map { it.id to it }.toTypedArray()
         dataModel.categoriesStore = DataState.Loaded(mutableMapOf(*pairs))
-        // Load default category from cookie after categories are loaded
+        // Load default category and split percentage from cookie after categories are loaded
         dataModel.loadDefaultCategoryFromCookie()
+        dataModel.loadDefaultSplitPercentageFromCookie()
       }
     }
 
@@ -254,6 +257,12 @@ class App : Application() {
                                 dataModel.displayedCategories.map { it.id to it.renderCategory() },
                         label = "Default Category"
                       ).bindTo(dataModel.observeDefaultCategoryId())
+
+                      // Add text input for default split percentage
+                      p("Enter a default split percentage:")
+                      text {
+                        placeholder = "e.g. 50"
+                      }.bindTo(dataModel.observeDefaultSplitPercentage())
                     }
 
                     categoriesTable(dataModel.displayedCategories)
