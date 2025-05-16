@@ -76,6 +76,10 @@ fun Container.transactionsTable(
                 }
               }
             }
+          } else {
+            div {
+              content = "${transaction.category_name}"
+            }
           }
         }
         cell {
