@@ -9,6 +9,7 @@ import io.kvision.panel.hPanel
 import io.kvision.state.ObservableList
 import io.kvision.state.bindEach
 import io.kvision.table.*
+import io.kvision.utils.px
 import ynab.TransactionDetail
 
 fun equalTester(a: TransactionDetail, b: TransactionDetail): Boolean {
@@ -94,8 +95,20 @@ fun Container.transactionsTable(
             content = ""
           }
         }
-        cell(transaction.amount.toUsd()) {
+        cell {
           verticalAlign = VerticalAlign.MIDDLE
+          hPanel {
+            span(content = transaction.amount.toUsd())
+            span {
+              paddingLeft = 5.px
+              useSnabbdomDistinctKey()
+              setAttribute("aria-label", "cleared")
+              icon("fas fa-money-check fa-xs")
+              if (transaction.cleared != "cleared" && transaction.cleared != "reconciled") {
+                setAttribute("hidden", "true")
+              }
+            }
+          }
         }
         cell {
           verticalAlign = VerticalAlign.MIDDLE
