@@ -154,6 +154,49 @@ class App : Application() {
       }
     }
 
+    fun finishEditCategory(transactionDetail: TransactionDetail, categoryResult: CategoryResult) {
+      if (dataModel.transactionsStore !is DataState.Loaded<*>) {
+        console.log("finishEditCategory called when transactions not loaded")
+        return
+      }
+
+      val req = js("{transaction: {}}")
+      req.transaction.category_id = categoryResult.categoryId
+
+      ynab.transactions.updateTransaction(
+        dataModel.selectedBudget!!.id, transactionDetail.id, req
+      ).then { response ->
+        dataModel.updateTransaction(transactionDetail, response.data.transaction)
+      }.catch { error ->
+        console.error("Error updating transaction category: $error")
+      }
+    }
+
+    fun onEditCategory(transactionDetail: TransactionDetail) {
+      if (dataModel.transactionsStore !is DataState.Loaded<*>) {
+        console.log("onEditCategory called when transactions not loaded")
+        return
+      }
+      if (dataModel.categoriesStore !is DataState.Loaded<*>) {
+        console.log("onEditCategory called when categories not loaded")
+        return
+      }
+      val categories = (dataModel.categoriesStore as DataState.Loaded).data
+
+      GlobalScope.launch {
+        val categoryResult = categoryModal(
+          transactionDetail,
+          categories,
+        ).getResult()
+
+        if (categoryResult == null) {
+          return@launch
+        } else {
+          finishEditCategory(transactionDetail, categoryResult)
+        }
+      }
+    }
+
     fun onSelectBudget(budget: BudgetSummary, onlyUnapproved: Boolean) {
       dataModel.selectedBudget = budget
 
@@ -222,6 +265,7 @@ class App : Application() {
                       onApprove = ::onApprove,
                       onUnapprove = ::onUnapprove,
                       onSplit = ::onSplit,
+                      onEditCategory = ::onEditCategory,
                     )
                   }
                 }

@@ -49,6 +49,7 @@ fun Container.transactionsTable(
   onApprove: ((TransactionDetail) -> Unit)? = null,
   onUnapprove: ((TransactionDetail) -> Unit)? = null,
   onSplit: ((TransactionDetail) -> Unit)? = null,
+  onEditCategory: ((TransactionDetail) -> Unit)? = null,
 ) {
   val columns = listOf("Date", "Payee", "Category", "Memo", "Amount", "Actions")
   val tableStyling = setOf(TableType.STRIPED, TableType.HOVER)
@@ -79,7 +80,11 @@ fun Container.transactionsTable(
             }
           } else {
             div {
-              content = "${transaction.category_name}"
+              if (transaction.category_name == "Uncategorized") {
+                content = "–"
+              } else {
+                content = "${transaction.category_name}"
+              }
             }
           }
         }
@@ -114,8 +119,15 @@ fun Container.transactionsTable(
           verticalAlign = VerticalAlign.MIDDLE
           hPanel(spacing = 2, justify = JustifyContent.SPACEBETWEEN) {
             whiteSpace = WhiteSpace.NOWRAP
-            button("", "fas fa-pencil fa-lg", style = ButtonStyle.SECONDARY) {
-              setAttribute("aria-label", "recategorize")
+            if (transaction.category_name != "Split") {
+              button("", "fas fa-pencil fa-lg", style = ButtonStyle.SECONDARY) {
+                setAttribute("aria-label", "recategorize")
+              }.onClick { onEditCategory?.invoke(transaction) }
+            } else {
+              button("", "fas fa-pencil fa-lg", style = ButtonStyle.SECONDARY) {
+                setStyle("visibility", "hidden")
+                setAttribute("aria-label", "recategorize")
+              }
             }
             if (transaction.category_name != "Split") {
               button("", style = ButtonStyle.SECONDARY) {
@@ -127,7 +139,7 @@ fun Container.transactionsTable(
               }.onClick { onSplit?.invoke(transaction) }
             } else {
               button("", style = ButtonStyle.SECONDARY) {
-                setAttribute("hidden", "true")
+                setStyle("visibility", "hidden")
                 div {
                   useSnabbdomDistinctKey()
                   span(className = "fa-layers fa-fw") {
