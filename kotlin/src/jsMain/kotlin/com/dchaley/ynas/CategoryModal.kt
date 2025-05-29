@@ -42,27 +42,27 @@ fun categoryModal(
   ) {
     vPanel(spacing = 6) {
       div {
-        p("Select a category:")
-        select(
-          options = categories.values.map { it.id to it.renderCategory() },
-        ).bindTo(selectedCategoryId)
-      }
-
-      div {
         alignContent = AlignContent.CENTER
 
         div().bind(selectedCategoryId) { categoryId ->
           val selectedCategory = categories[categoryId]
           if (selectedCategory != null) {
-            p("New category: ${selectedCategory.renderCategory()}")
+            p("Current category: ${category?.renderCategory() ?: "Uncategorized"}")
           }
         }
+      }
+
+      div {
+        p("New category:")
+        select(
+          options = categories.values.map { it.id to it.renderCategory() },
+        ).bindTo(selectedCategoryId)
       }
 
       hPanel(spacing = 5) {
         marginTop = 1.em
 
-        button("Save", style = ButtonStyle.PRIMARY) {
+        button("Save", style = ButtonStyle.PRIMARY).bind(selectedCategoryId) {
           disabled = selectedCategoryId.value == null
         }.onClick {
           setResult(CategoryResult(selectedCategoryId.value!!))
